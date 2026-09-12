@@ -1,0 +1,74 @@
+<!--Diese Seite fragt beim Aufruf nach der PIN. Sobald diese korrekt ist, 
+schaltet sich die Seite auf den WebSocket und zeigt die Werte vollautomatisch 
+an (ideal auch als Browser-Quelle in OBS Studio).-->
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Streamer Scoreboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+  <!-- PIN-Abfrage -->
+  <div id="auth-box" class="bg-gray-800 p-6 rounded-lg shadow-lg text-center max-w-sm w-full">
+    <h2 class="text-xl font-bold mb-4">Streamer PIN eingeben</h2>
+    <input type="password" id="pin-input" placeholder="PIN" class="w-full p-2 rounded bg-gray-700 text-white text-center mb-4">
+    <button onclick="checkPin()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-bold">Freischalten</button>
+  </div>
+
+  <!-- Scoreboard (Initial ausgeblendet) -->
+  <div id="scoreboard" class="hidden flex flex-col items-center gap-6">
+    <div class="text-2xl font-semibold tracking-wide bg-gray-800 px-6 py-2 rounded-full border border-gray-700">
+      Runde <span id="round" class="text-yellow-400 font-bold">1</span>
+    </div>
+
+    <div class="flex gap-10">
+      <!-- Streamer Box -->
+      <div class="bg-gray-800 border-2 border-blue-500 rounded-2xl p-8 w-64 text-center shadow-xl">
+        <h3 class="text-lg text-gray-400 uppercase tracking-wider mb-2">Streamer</h3>
+        <span id="score-streamer" class="text-7xl font-extrabold text-blue-400">0</span>
+      </div>
+
+      <!-- Chat Box -->
+      <div class="bg-gray-800 border-2 border-purple-500 rounded-2xl p-8 w-64 text-center shadow-xl">
+        <h3 class="text-lg text-gray-400 uppercase tracking-wider mb-2">Chat</h3>
+        <span id="score-chat" class="text-7xl font-extrabold text-purple-400">0</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const VALID_PIN = "1234";
+
+    function checkPin() {
+      const pin = document.getElementById("pin-input").value;
+      if (pin === VALID_PIN) {
+        document.getElementById("auth-box").classList.add("hidden");
+        document.getElementById("scoreboard").classList.remove("hidden");
+        connectWebSocket();
+      } else {
+        alert("Falsche PIN!");
+      }
+    }
+
+    function connectWebSocket() {
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        document.getElementById("score-streamer").innerText = data.score_streamer;
+        document.getElementById("score-chat").innerText = data.score_chat;
+        document.getElementById("round").innerText = data.round;
+      };
+
+      ws.onclose = () => {
+        // Bei Verbindungsabbruch nach 2 Sekunden neu verbinden
+        setTimeout(connectWebSocket, 2000);
+      };
+    }
+  </script>
+</body>
+</html>

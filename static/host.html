@@ -1,0 +1,59 @@
+<!--Hier steuert der Mod den Spielstand. Die Änderungen werden sofort über den REST-Endpunkt geschickt
+    und vom Backend per WebSocket an die Streamer-Ansicht übertragen.-->
+    
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Host Control Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+
+  <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md border border-gray-700">
+    <h1 class="text-xl font-bold text-center mb-4">Mod / Host Steuerung</h1>
+    
+    <label class="block text-xs uppercase text-gray-400 mb-1">Mod-PIN</label>
+    <input type="password" id="mod-pin" value="9876" class="w-full p-2 rounded bg-gray-700 text-white mb-6 text-center">
+
+    <!-- Controls Streamer -->
+    <div class="mb-4">
+      <h3 class="text-sm font-semibold text-blue-400 mb-2">Streamer Punktestand</h3>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="sendAction('inc_streamer')" class="bg-blue-600 hover:bg-blue-500 py-3 rounded font-bold text-lg">+1</button>
+        <button onclick="sendAction('dec_streamer')" class="bg-blue-800 hover:bg-blue-700 py-3 rounded font-bold text-lg">-1</button>
+      </div>
+    </div>
+
+    <!-- Controls Chat -->
+    <div class="mb-6">
+      <h3 class="text-sm font-semibold text-purple-400 mb-2">Chat Punktestand</h3>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="sendAction('inc_chat')" class="bg-purple-600 hover:bg-purple-500 py-3 rounded font-bold text-lg">+1</button>
+        <button onclick="sendAction('dec_chat')" class="bg-purple-800 hover:bg-purple-700 py-3 rounded font-bold text-lg">-1</button>
+      </div>
+    </div>
+
+    <!-- Rundensteuerung -->
+    <div class="grid grid-cols-2 gap-2 border-t border-gray-700 pt-4">
+      <button onclick="sendAction('next_round')" class="bg-yellow-600 hover:bg-yellow-500 py-2 rounded font-semibold">Nächste Runde</button>
+      <button onclick="sendAction('reset')" class="bg-red-700 hover:bg-red-600 py-2 rounded font-semibold">Reset (0:0)</button>
+    </div>
+  </div>
+
+  <script>
+    async function sendAction(action) {
+      const pin = document.getElementById("mod-pin").value;
+      const res = await fetch("/api/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, action })
+      });
+
+      if (!res.ok) {
+        alert("Fehler: PIN falsch oder Server-Problem.");
+      }
+    }
+  </script>
+</body>
+</html>
