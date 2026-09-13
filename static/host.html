@@ -9,17 +9,38 @@
   <title>Host Control Panel - Scoreboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col items-center py-8 px-4">
+<body class="bg-gray-950 text-white min-h-screen flex flex-col items-center justify-center py-8 px-4">
 
-  <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-xl">
+  <!-- ================= PIN AUTH DIALOG ================= -->
+  <div id="auth-box" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl text-center w-full max-w-sm">
+      <div class="w-12 h-12 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+        🔒
+      </div>
+      <h2 class="text-xl font-bold mb-1 text-white">Host-Zugang</h2>
+      <p class="text-xs text-gray-400 mb-6">Bitte Mod-PIN eingeben, um das Panel freizuschalten.</p>
+      
+      <input type="password" id="pin-input" placeholder="Mod-PIN" class="w-full text-center text-2xl tracking-widest p-3 rounded-lg bg-gray-800 border border-gray-700 text-white mb-4 focus:outline-none focus:border-yellow-400" onkeydown="if(event.key==='Enter') checkModPin()">
+      
+      <button onclick="checkModPin()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-3 rounded-lg transition-colors uppercase tracking-wider text-sm shadow-lg">
+        Anmelden
+      </button>
+      <p id="auth-error" class="hidden text-red-400 text-xs mt-3 font-semibold">Ungültige PIN. Bitte erneut versuchen.</p>
+    </div>
+  </div>
+
+  <!-- ================= HAUPT CONTROL PANEL ================= -->
+  <main id="host-panel" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-xl">
     <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-800">
       <div>
         <h1 class="text-2xl font-black text-yellow-500 tracking-wide">MOD CONTROL PANEL</h1>
         <p class="text-xs text-gray-400">Oldmanstuff vs. Kuhmunity</p>
       </div>
       <div class="text-right">
-        <label class="block text-[10px] uppercase text-gray-400 font-bold">Mod-PIN</label>
-        <input type="password" id="mod-pin" value="9876" class="p-1 text-sm rounded bg-gray-800 border border-gray-700 text-center w-24">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-950 text-green-400 border border-green-800">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          Verbunden
+        </span>
       </div>
     </div>
 
@@ -30,8 +51,8 @@
         <h2 class="font-bold text-blue-400 uppercase tracking-wider text-sm mb-1">Oldmanstuff</h2>
         <div id="display-score-streamer" class="text-4xl font-extrabold text-white mb-3">0</div>
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="sendAction('inc_streamer')" class="bg-blue-600 hover:bg-blue-500 py-2 rounded-lg font-bold text-lg">+1</button>
-          <button onclick="sendAction('dec_streamer')" class="bg-blue-900 hover:bg-blue-800 py-2 rounded-lg font-bold text-lg">-1</button>
+          <button onclick="sendAction('inc_streamer')" class="bg-blue-600 hover:bg-blue-500 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">+1</button>
+          <button onclick="sendAction('dec_streamer')" class="bg-blue-900 hover:bg-blue-800 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">-1</button>
         </div>
       </div>
 
@@ -40,8 +61,8 @@
         <h2 class="font-bold text-purple-400 uppercase tracking-wider text-sm mb-1">Kuhmunity</h2>
         <div id="display-score-chat" class="text-4xl font-extrabold text-white mb-3">0</div>
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="sendAction('inc_chat')" class="bg-purple-600 hover:bg-purple-500 py-2 rounded-lg font-bold text-lg">+1</button>
-          <button onclick="sendAction('dec_chat')" class="bg-purple-900 hover:bg-purple-800 py-2 rounded-lg font-bold text-lg">-1</button>
+          <button onclick="sendAction('inc_chat')" class="bg-purple-600 hover:bg-purple-500 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">+1</button>
+          <button onclick="sendAction('dec_chat')" class="bg-purple-900 hover:bg-purple-800 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">-1</button>
         </div>
       </div>
     </div>
@@ -57,10 +78,10 @@
       </div>
 
       <div class="grid grid-cols-2 gap-3">
-        <button onclick="sendAction('win_streamer')" class="bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 py-3 rounded-lg font-bold text-sm shadow">
+        <button onclick="sendAction('win_streamer')" class="bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 py-3 rounded-lg font-bold text-sm shadow active:scale-95 transition-transform">
           🏆 Runde an Oldmanstuff
         </button>
-        <button onclick="sendAction('win_chat')" class="bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 py-3 rounded-lg font-bold text-sm shadow">
+        <button onclick="sendAction('win_chat')" class="bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 py-3 rounded-lg font-bold text-sm shadow active:scale-95 transition-transform">
           🏆 Runde an Kuhmunity
         </button>
       </div>
@@ -80,30 +101,56 @@
         ⚠️ Komplettes Spiel zurücksetzen (Reset)
       </button>
     </div>
-  </div>
+  </main>
 
   <script>
+    const VALID_MOD_PIN = "9876";
     const TOTAL_ROUNDS = 7;
+    let currentAuthPin = "";
 
-    // Rundenliste im Host-Panel aufbauen
+    // 7 Rundenzeilen aufbauen
     const table = document.getElementById("rounds-table");
     for (let r = 1; r <= TOTAL_ROUNDS; r++) {
       table.innerHTML += `
         <div class="flex items-center justify-between bg-gray-800/80 px-3 py-2 rounded-lg border border-gray-700/60 text-sm">
           <div class="flex items-center gap-2">
             <span class="font-bold text-yellow-500">Runde ${r}</span>
+            <span class="text-[10px] text-gray-400">(${r} Pkt)</span>
             <span id="badge-r-${r}" class="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-300 font-semibold">Offen</span>
           </div>
           <div class="flex gap-1">
-            <button onclick="setRoundWinner(${r}, 'streamer')" class="bg-blue-600/80 hover:bg-blue-600 px-2 py-1 rounded text-xs font-bold">Oldmanstuff</button>
-            <button onclick="setRoundWinner(${r}, 'chat')" class="bg-purple-600/80 hover:bg-purple-600 px-2 py-1 rounded text-xs font-bold">Kuhmunity</button>
-            <button onclick="setRoundWinner(${r}, 'clear')" class="bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs text-gray-400">✕</button>
+            <button onclick="setRoundWinner(${r}, 'streamer')" class="bg-blue-600/80 hover:bg-blue-600 px-2.5 py-1 rounded text-xs font-bold transition-colors">Oldmanstuff</button>
+            <button onclick="setRoundWinner(${r}, 'chat')" class="bg-purple-600/80 hover:bg-purple-600 px-2.5 py-1 rounded text-xs font-bold transition-colors">Kuhmunity</button>
+            <button onclick="setRoundWinner(${r}, 'clear')" class="bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs text-gray-400 transition-colors" title="Runde zurücksetzen">✕</button>
           </div>
         </div>
       `;
     }
 
-    // WebSocket-Verbindung für Live-Spiegelung im Host Panel
+    function unlockHostPanel(pin) {
+      currentAuthPin = pin;
+      document.getElementById("auth-box").classList.add("hidden");
+      document.getElementById("host-panel").classList.remove("hidden");
+      connectWS();
+    }
+
+    function checkModPin() {
+      const pin = document.getElementById("pin-input").value;
+      if (pin === VALID_MOD_PIN) {
+        document.getElementById("auth-error").classList.add("hidden");
+        unlockHostPanel(pin);
+      } else {
+        document.getElementById("auth-error").classList.remove("hidden");
+      }
+    }
+
+    // Optionaler URL-Bypass für Tests: ?nopin
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("nopin")) {
+      unlockHostPanel(VALID_MOD_PIN);
+    }
+
+    // WebSocket-Synchronisation
     function connectWS() {
       const protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const ws = new WebSocket(`${protocol}//${location.host}/ws`);
@@ -117,7 +164,6 @@
         setTimeout(connectWS, 2000);
       };
     }
-    connectWS();
 
     function updateUI(data) {
       document.getElementById("display-score-streamer").innerText = data.score_streamer;
@@ -143,8 +189,7 @@
     }
 
     async function sendAction(action, roundNum = null) {
-      const pin = document.getElementById("mod-pin").value;
-      const payload = { pin: pin, action: action };
+      const payload = { pin: currentAuthPin, action: action };
       if (roundNum !== null) {
         payload.round_num = roundNum;
       }
@@ -156,7 +201,7 @@
       });
 
       if (!res.ok) {
-        alert("Aktion fehlgeschlagen: Prüfe die Mod-PIN!");
+        alert("Aktion fehlgeschlagen: Bitte Sitzung oder PIN prüfen!");
       }
     }
 
