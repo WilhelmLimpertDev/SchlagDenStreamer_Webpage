@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twelfthlion - Live Scoreboard Suite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&family=Teko:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    .font-brand {
+      font-family: 'Teko', sans-serif;
+      letter-spacing: 2px;
+    }
+    .font-digital {
+      font-family: 'Orbitron', monospace;
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
+
+  <!-- ================= HEADER ================= -->
+  <header class="w-full border-b border-gray-800/80 bg-gray-900/40 backdrop-blur px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <!-- Echtes Twelfthlion Logo -->
+      <a href="/" title="Zurück zur Startseite" class="transition-transform hover:scale-105 active:scale-95">
+        <img 
+          src="/Grafik/logo_twelfthlion_gemini_ai.png" 
+          alt="Twelfthlion Logo" 
+          class="h-10 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+          onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 40 40\'><rect width=\'40\' height=\'40\' rx=\'8\' fill=\'%23eab308\'/><text x=\'50%25\' y=\'65%25\' font-size=\'16\' font-weight=\'bold\' fill=\'%23000000\' font-family=\'sans-serif\' text-anchor=\'middle\'>TL</text></svg>';"
+        >
+      </a>
+      <div>
+        <h1 class="text-xl font-bold tracking-wide leading-tight">Twelfthlion</h1>
+        <p class="text-xs text-gray-400">Stream Event Suite</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="text-xs font-semibold text-emerald-400 tracking-wider uppercase">Live Hub</span>
+    </div>
+  </header>
+
+  <!-- ================= HAUPT-BEREICH ================= -->
+  <main class="w-full max-w-4xl mx-auto px-6 py-12 flex-1 flex flex-col justify-center">
+    
+    <div class="text-center mb-12">
+      <h2 class="font-brand text-5xl md:text-7xl uppercase text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 drop-shadow">
+        Live Scoreboard
+      </h2>
+      <p class="text-gray-300 text-lg max-w-lg mx-auto font-medium">
+        Oldmanstuff <span class="text-amber-400 font-bold">VS</span> Kuhmunity
+      </p>
+      <p class="text-xs text-gray-400 mt-1">Echtzeit-Synchronisation für Streamer, Moderation und Chat</p>
+    </div>
+
+    <!-- KARTEN ZU DEN BEIDEN BEREICHEN -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- 1. STREAMER / OVERLAY -->
+      <div class="bg-gray-900/90 border border-gray-800 hover:border-amber-500/50 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:shadow-amber-500/10">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/20">
+              Anzeige
+            </span>
+            <span class="text-xs text-gray-400">OBS & Streamer</span>
+          </div>
+
+          <h3 class="text-2xl font-bold text-white mb-2">Overlay Board</h3>
+          <p class="text-sm text-gray-400 mb-6">
+            Die visuelle Punktetafel mit 7 Rundenkarten, Spielständen und animierten Rundenboxen.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <a href="/overlay.html" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-extrabold py-3 rounded-xl transition-transform active:scale-98 shadow-lg">
+            <span>Overlay aufrufen (mit PIN)</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+          
+          <!-- Copy-Button für OBS Link -->
+          <button 
+            id="copy-obs-btn" 
+            onclick="copyObsLink()" 
+            class="w-full inline-flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold py-2.5 rounded-xl border border-gray-700 transition-all active:scale-98 cursor-pointer"
+          >
+            <svg id="copy-icon" class="w-4 h-4 text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+            </svg>
+            <span id="copy-text">OBS-Browserquelle Link kopieren</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. MOD / HOST CONTROL -->
+      <div class="bg-gray-900/90 border border-gray-800 hover:border-purple-500/50 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-purple-500/10 text-purple-400 rounded-full border border-purple-500/20">
+              Steuerung
+            </span>
+            <span class="text-xs text-gray-400">Moderator / Host</span>
+          </div>
+
+          <h3 class="text-2xl font-bold text-white mb-2">Host Control Panel</h3>
+          <p class="text-sm text-gray-400 mb-6">
+            Verwaltung der Punktestände, Rundenentscheidungen (1 bis 7 Punkte), Korrekturen und Reset.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <a href="/host.html" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold py-3 rounded-xl transition-transform active:scale-98 shadow-lg">
+            <span>Mod-Panel öffnen</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+
+          <div class="text-center py-1">
+            <span class="text-[11px] text-gray-400">Zugang erfordert die Mod-PIN</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="w-full border-t border-gray-800/80 py-6 px-6 text-center text-xs text-gray-400">
+    <p>© 2026 twelfthlion.com · Powered by Node.js & WebSockets</p>
+  </footer>
+
+  <script>
+    function copyObsLink() {
+      // Ermittelt dynamisch die aktuelle Domain und hängt '/overlay.html?nopin' an
+      const obsUrl = `${window.location.origin}/overlay.html?nopin`;
+
+      navigator.clipboard.writeText(obsUrl).then(() => {
+        const btn = document.getElementById("copy-obs-btn");
+        const text = document.getElementById("copy-text");
+        const icon = document.getElementById("copy-icon");
+
+        // Visuelles Feedback
+        btn.classList.add("border-emerald-500", "bg-emerald-950/40", "text-emerald-300");
+        btn.classList.remove("border-gray-700", "bg-gray-800", "text-gray-200");
+        text.innerText = "✓ URL in Zwischenablage kopiert!";
+        icon.classList.add("text-emerald-400");
+        icon.classList.remove("text-gray-400");
+
+        // Nach 2 Sekunden Zustand zurücksetzen
+        setTimeout(() => {
+          btn.classList.remove("border-emerald-500", "bg-emerald-950/40", "text-emerald-300");
+          btn.classList.add("border-gray-700", "bg-gray-800", "text-gray-200");
+          text.innerText = "OBS-Browserquelle Link kopieren";
+          icon.classList.remove("text-emerald-400");
+          icon.classList.add("text-gray-400");
+        }, 2000);
+      }).catch(err => {
+        console.error("Kopieren fehlgeschlagen:", err);
+        prompt("Kopiere den Link für OBS bitte manuell:", obsUrl);
+      });
+    }
+  </script>
+
+</body>
+</html>
