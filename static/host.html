@@ -5,53 +5,170 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Host Control Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host Control Panel - Scoreboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+<body class="bg-gray-950 text-white min-h-screen flex flex-col items-center py-8 px-4">
 
-  <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md border border-gray-700">
-    <h1 class="text-xl font-bold text-center mb-4">Mod / Host Steuerung</h1>
-    
-    <label class="block text-xs uppercase text-gray-400 mb-1">Mod-PIN</label>
-    <input type="password" id="mod-pin" value="9876" class="w-full p-2 rounded bg-gray-700 text-white mb-6 text-center">
-
-    <!-- Controls Streamer -->
-    <div class="mb-4">
-      <h3 class="text-sm font-semibold text-blue-400 mb-2">Streamer Punktestand</h3>
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="sendAction('inc_streamer')" class="bg-blue-600 hover:bg-blue-500 py-3 rounded font-bold text-lg">+1</button>
-        <button onclick="sendAction('dec_streamer')" class="bg-blue-800 hover:bg-blue-700 py-3 rounded font-bold text-lg">-1</button>
+  <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-xl">
+    <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-800">
+      <div>
+        <h1 class="text-2xl font-black text-yellow-500 tracking-wide">MOD CONTROL PANEL</h1>
+        <p class="text-xs text-gray-400">Oldmanstuff vs. Kuhmunity</p>
+      </div>
+      <div class="text-right">
+        <label class="block text-[10px] uppercase text-gray-400 font-bold">Mod-PIN</label>
+        <input type="password" id="mod-pin" value="9876" class="p-1 text-sm rounded bg-gray-800 border border-gray-700 text-center w-24">
       </div>
     </div>
 
-    <!-- Controls Chat -->
+    <!-- PUNKTESTÄNDE ANPASSEN -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <!-- Oldmanstuff -->
+      <div class="bg-gray-800/70 p-4 rounded-xl border border-blue-600/40 text-center">
+        <h2 class="font-bold text-blue-400 uppercase tracking-wider text-sm mb-1">Oldmanstuff</h2>
+        <div id="display-score-streamer" class="text-4xl font-extrabold text-white mb-3">0</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="sendAction('inc_streamer')" class="bg-blue-600 hover:bg-blue-500 py-2 rounded-lg font-bold text-lg">+1</button>
+          <button onclick="sendAction('dec_streamer')" class="bg-blue-900 hover:bg-blue-800 py-2 rounded-lg font-bold text-lg">-1</button>
+        </div>
+      </div>
+
+      <!-- Kuhmunity -->
+      <div class="bg-gray-800/70 p-4 rounded-xl border border-purple-600/40 text-center">
+        <h2 class="font-bold text-purple-400 uppercase tracking-wider text-sm mb-1">Kuhmunity</h2>
+        <div id="display-score-chat" class="text-4xl font-extrabold text-white mb-3">0</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="sendAction('inc_chat')" class="bg-purple-600 hover:bg-purple-500 py-2 rounded-lg font-bold text-lg">+1</button>
+          <button onclick="sendAction('dec_chat')" class="bg-purple-900 hover:bg-purple-800 py-2 rounded-lg font-bold text-lg">-1</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RUNDEN-SCHNELLSTEUERUNG (AKTIVE RUNDE) -->
+    <div class="bg-gray-800/40 border border-gray-700 p-4 rounded-xl mb-6">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-sm font-semibold text-gray-300">Aktuelle Runde: <span id="current-round-text" class="text-yellow-400 font-bold text-lg">1</span> / 7</span>
+        <div class="flex gap-2">
+          <button onclick="sendAction('prev_round')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">◀ Zurück</button>
+          <button onclick="sendAction('next_round')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">Vor ▶</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="sendAction('win_streamer')" class="bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 py-3 rounded-lg font-bold text-sm shadow">
+          🏆 Runde an Oldmanstuff
+        </button>
+        <button onclick="sendAction('win_chat')" class="bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 py-3 rounded-lg font-bold text-sm shadow">
+          🏆 Runde an Kuhmunity
+        </button>
+      </div>
+    </div>
+
+    <!-- RUNDENÜBERSICHT (ALLE 7 RUNDEN EINZELN STEUERBAR) -->
     <div class="mb-6">
-      <h3 class="text-sm font-semibold text-purple-400 mb-2">Chat Punktestand</h3>
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="sendAction('inc_chat')" class="bg-purple-600 hover:bg-purple-500 py-3 rounded font-bold text-lg">+1</button>
-        <button onclick="sendAction('dec_chat')" class="bg-purple-800 hover:bg-purple-700 py-3 rounded font-bold text-lg">-1</button>
+      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Alle Runden (Status & Korrektur)</h3>
+      <div id="rounds-table" class="space-y-2">
+        <!-- Runden 1 bis 7 werden per JS generiert -->
       </div>
     </div>
 
-    <!-- Rundensteuerung -->
-    <div class="grid grid-cols-2 gap-2 border-t border-gray-700 pt-4">
-      <button onclick="sendAction('next_round')" class="bg-yellow-600 hover:bg-yellow-500 py-2 rounded font-semibold">Nächste Runde</button>
-      <button onclick="sendAction('reset')" class="bg-red-700 hover:bg-red-600 py-2 rounded font-semibold">Reset (0:0)</button>
+    <!-- RESET BUTTON -->
+    <div class="pt-4 border-t border-gray-800 text-center">
+      <button onclick="confirmReset()" class="text-red-500 hover:text-red-400 text-xs uppercase tracking-wider font-semibold">
+        ⚠️ Komplettes Spiel zurücksetzen (Reset)
+      </button>
     </div>
   </div>
 
   <script>
-    async function sendAction(action) {
+    const TOTAL_ROUNDS = 7;
+
+    // Rundenliste im Host-Panel aufbauen
+    const table = document.getElementById("rounds-table");
+    for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+      table.innerHTML += `
+        <div class="flex items-center justify-between bg-gray-800/80 px-3 py-2 rounded-lg border border-gray-700/60 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-yellow-500">Runde ${r}</span>
+            <span id="badge-r-${r}" class="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-300 font-semibold">Offen</span>
+          </div>
+          <div class="flex gap-1">
+            <button onclick="setRoundWinner(${r}, 'streamer')" class="bg-blue-600/80 hover:bg-blue-600 px-2 py-1 rounded text-xs font-bold">Oldmanstuff</button>
+            <button onclick="setRoundWinner(${r}, 'chat')" class="bg-purple-600/80 hover:bg-purple-600 px-2 py-1 rounded text-xs font-bold">Kuhmunity</button>
+            <button onclick="setRoundWinner(${r}, 'clear')" class="bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs text-gray-400">✕</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // WebSocket-Verbindung für Live-Spiegelung im Host Panel
+    function connectWS() {
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        updateUI(data);
+      };
+
+      ws.onclose = () => {
+        setTimeout(connectWS, 2000);
+      };
+    }
+    connectWS();
+
+    function updateUI(data) {
+      document.getElementById("display-score-streamer").innerText = data.score_streamer;
+      document.getElementById("display-score-chat").innerText = data.score_chat;
+      document.getElementById("current-round-text").innerText = data.round;
+
+      if (data.round_history) {
+        for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+          const outcome = data.round_history[String(r)];
+          const badge = document.getElementById(`badge-r-${r}`);
+          if (outcome === "streamer") {
+            badge.innerText = "Oldmanstuff";
+            badge.className = "text-xs px-2 py-0.5 rounded bg-blue-600 text-white font-bold";
+          } else if (outcome === "chat") {
+            badge.innerText = "Kuhmunity";
+            badge.className = "text-xs px-2 py-0.5 rounded bg-purple-600 text-white font-bold";
+          } else {
+            badge.innerText = "Offen";
+            badge.className = "text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-semibold";
+          }
+        }
+      }
+    }
+
+    async function sendAction(action, roundNum = null) {
       const pin = document.getElementById("mod-pin").value;
+      const payload = { pin: pin, action: action };
+      if (roundNum !== null) {
+        payload.round_num = roundNum;
+      }
+
       const res = await fetch("/api/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin, action })
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
-        alert("Fehler: PIN falsch oder Server-Problem.");
+        alert("Aktion fehlgeschlagen: Prüfe die Mod-PIN!");
+      }
+    }
+
+    function setRoundWinner(round, winner) {
+      if (winner === "streamer") sendAction("win_streamer", round);
+      else if (winner === "chat") sendAction("win_chat", round);
+      else sendAction("win_clear", round);
+    }
+
+    function confirmReset() {
+      if (confirm("Möchtest du wirklich alle Scores und Runden auf 0 zurücksetzen?")) {
+        sendAction("reset");
       }
     }
   </script>

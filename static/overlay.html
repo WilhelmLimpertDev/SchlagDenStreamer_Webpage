@@ -6,47 +6,146 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Streamer Scoreboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scoreboard Overlay</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Teko:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    .font-digital {
+      font-family: 'Orbitron', monospace;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    }
+    .font-header {
+      font-family: 'Teko', sans-serif;
+      letter-spacing: 2px;
+    }
+    .card-perspective {
+      perspective: 1000px;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    .card-flipped {
+      transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 0.6rem;
+    }
+    .card-back {
+      transform: rotateY(180deg);
+    }
+    .matrix-bg {
+      background-color: #0d1117;
+      background-image: radial-gradient(#1f2937 15%, transparent 16%);
+      background-size: 6px 6px;
+    }
+    .gold-chassis {
+      background: linear-gradient(180deg, #ffbe0b 0%, #fb5607 100%);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-900/90 min-h-screen text-white flex flex-col items-center justify-between p-6 select-none overflow-hidden">
 
-  <!-- PIN-Abfrage -->
-  <div id="auth-box" class="bg-gray-800 p-6 rounded-lg shadow-lg text-center max-w-sm w-full">
-    <h2 class="text-xl font-bold mb-4">Streamer PIN eingeben</h2>
-    <input type="password" id="pin-input" placeholder="PIN" class="w-full p-2 rounded bg-gray-700 text-white text-center mb-4">
-    <button onclick="checkPin()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-bold">Freischalten</button>
-  </div>
-
-  <!-- Scoreboard (Initial ausgeblendet) -->
-  <div id="scoreboard" class="hidden flex flex-col items-center gap-6">
-    <div class="text-2xl font-semibold tracking-wide bg-gray-800 px-6 py-2 rounded-full border border-gray-700">
-      Runde <span id="round" class="text-yellow-400 font-bold">1</span>
-    </div>
-
-    <div class="flex gap-10">
-      <!-- Streamer Box -->
-      <div class="bg-gray-800 border-2 border-blue-500 rounded-2xl p-8 w-64 text-center shadow-xl">
-        <h3 class="text-lg text-gray-400 uppercase tracking-wider mb-2">Streamer</h3>
-        <span id="score-streamer" class="text-7xl font-extrabold text-blue-400">0</span>
-      </div>
-
-      <!-- Chat Box -->
-      <div class="bg-gray-800 border-2 border-purple-500 rounded-2xl p-8 w-64 text-center shadow-xl">
-        <h3 class="text-lg text-gray-400 uppercase tracking-wider mb-2">Chat</h3>
-        <span id="score-chat" class="text-7xl font-extrabold text-purple-400">0</span>
-      </div>
+  <!-- PIN AUTH -->
+  <div id="auth-box" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center">
+    <div class="bg-gray-800 border border-gray-700 p-8 rounded-2xl shadow-2xl text-center w-80">
+      <h2 class="text-2xl font-bold mb-4 font-header tracking-wider">Scoreboard PIN</h2>
+      <input type="password" id="pin-input" placeholder="PIN eingeben" class="w-full text-center text-xl tracking-widest p-3 rounded-lg bg-gray-900 border border-gray-600 text-white mb-4 focus:outline-none focus:border-yellow-400">
+      <button onclick="checkPin()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-3 rounded-lg transition-colors uppercase tracking-wider">Freischalten</button>
     </div>
   </div>
+
+  <!-- HAUPT-CONTAINER -->
+  <main id="scoreboard-container" class="hidden w-full max-w-4xl flex flex-col items-center justify-center my-auto gap-8">
+    
+    <!-- 1. OBERES DRITTEL: 7 SPIELKARTEN -->
+    <header class="w-full flex justify-center items-center gap-3 card-perspective h-32">
+      <div id="cards-wrapper" class="flex gap-3"></div>
+    </header>
+
+    <!-- 2. MITTLERES DRITTEL: TAFEL -->
+    <section class="w-full gold-chassis p-4 md:p-6 rounded-3xl border-4 border-white/70">
+      <div class="grid grid-cols-2 gap-4 md:gap-8">
+        
+        <!-- Streamer: Oldmanstuff -->
+        <article class="flex flex-col items-center">
+          <h2 class="font-header text-3xl md:text-5xl uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            Oldmanstuff
+          </h2>
+          <div class="w-full h-36 md:h-44 matrix-bg rounded-xl border-4 border-gray-900 shadow-inner flex items-center justify-center relative overflow-hidden mt-1">
+            <span id="score-streamer" class="font-digital text-7xl md:text-8xl font-black text-amber-400 tracking-wider">00</span>
+          </div>
+          <div class="flex gap-1.5 md:gap-2 mt-3" id="rounds-streamer"></div>
+        </article>
+
+        <!-- Chat: Kuhmunity -->
+        <article class="flex flex-col items-center">
+          <h2 class="font-header text-3xl md:text-5xl uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            Kuhmunity
+          </h2>
+          <div class="w-full h-36 md:h-44 matrix-bg rounded-xl border-4 border-gray-900 shadow-inner flex items-center justify-center relative overflow-hidden mt-1">
+            <span id="score-chat" class="font-digital text-7xl md:text-8xl font-black text-amber-400 tracking-wider">00</span>
+          </div>
+          <div class="flex gap-1.5 md:gap-2 mt-3" id="rounds-chat"></div>
+        </article>
+
+      </div>
+    </section>
+
+  </main>
 
   <script>
     const VALID_PIN = "1234";
+    const TOTAL_ROUNDS = 7;
+
+    const cardsWrapper = document.getElementById("cards-wrapper");
+    for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+      cardsWrapper.innerHTML += `
+        <div id="card-${r}" class="w-14 h-24 md:w-20 md:h-28 card-inner">
+          <div class="card-front bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900 border-2 border-white/40 shadow-lg flex flex-col items-center justify-center">
+            <div class="w-8 h-12 border border-dashed border-white/30 rounded flex items-center justify-center">
+              <span class="text-white/40 font-bold text-xs">?</span>
+            </div>
+          </div>
+          <div class="card-back bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 border-2 border-white shadow-xl flex flex-col items-center justify-center text-slate-950">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-800">Runde</span>
+            <span class="font-digital text-2xl md:text-3xl font-black">${r}</span>
+            <span class="text-[9px] font-semibold text-slate-700 mt-1">${r} ${r === 1 ? 'Pkt' : 'Pkte'}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function generateRoundSlots(elementId, prefix) {
+      const el = document.getElementById(elementId);
+      for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+        el.innerHTML += `
+          <div id="${prefix}-${r}" class="w-6 h-6 md:w-8 md:h-8 rounded bg-gray-950 border border-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 transition-all duration-300">
+            ${r}
+          </div>
+        `;
+      }
+    }
+    generateRoundSlots("rounds-streamer", "streamer-r");
+    generateRoundSlots("rounds-chat", "chat-r");
 
     function checkPin() {
       const pin = document.getElementById("pin-input").value;
       if (pin === VALID_PIN) {
         document.getElementById("auth-box").classList.add("hidden");
-        document.getElementById("scoreboard").classList.remove("hidden");
+        document.getElementById("scoreboard-container").classList.remove("hidden");
         connectWebSocket();
       } else {
         alert("Falsche PIN!");
@@ -59,15 +158,52 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        document.getElementById("score-streamer").innerText = data.score_streamer;
-        document.getElementById("score-chat").innerText = data.score_chat;
-        document.getElementById("round").innerText = data.round;
+        renderState(data);
       };
 
       ws.onclose = () => {
-        // Bei Verbindungsabbruch nach 2 Sekunden neu verbinden
         setTimeout(connectWebSocket, 2000);
       };
+    }
+
+    function renderState(state) {
+      document.getElementById("score-streamer").innerText = String(state.score_streamer).padStart(2, '0');
+      document.getElementById("score-chat").innerText = String(state.score_chat).padStart(2, '0');
+
+      const currentRound = Math.min(Math.max(1, state.round), TOTAL_ROUNDS);
+
+      // Karten-Aufdeckung
+      for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+        const card = document.getElementById(`card-${r}`);
+        if (r <= currentRound) {
+          card.classList.add("card-flipped");
+        } else {
+          card.classList.remove("card-flipped");
+        }
+      }
+
+      // Runden-Ergebnisse stylen oder zurücksetzen (entfärben)
+      if (state.round_history) {
+        for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+          const outcome = state.round_history[String(r)];
+          const stBox = document.getElementById(`streamer-r-${r}`);
+          const chBox = document.getElementById(`chat-r-${r}`);
+
+          const defaultClass = "w-6 h-6 md:w-8 md:h-8 rounded bg-gray-950 border border-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 transition-all duration-300";
+
+          if (outcome === "streamer") {
+            stBox.className = "w-6 h-6 md:w-8 md:h-8 rounded bg-green-500 text-black font-black border border-white flex items-center justify-center text-xs shadow-md";
+            chBox.className = "w-6 h-6 md:w-8 md:h-8 rounded bg-red-950/80 text-red-400/60 border border-red-900/60 flex items-center justify-center text-xs";
+          } else if (outcome === "chat") {
+            stBox.className = "w-6 h-6 md:w-8 md:h-8 rounded bg-red-950/80 text-red-400/60 border border-red-900/60 flex items-center justify-center text-xs";
+            chBox.className = "w-6 h-6 md:w-8 md:h-8 rounded bg-green-500 text-black font-black border border-white flex items-center justify-center text-xs shadow-md";
+          } else {
+            // Status offen: komplett entfärben und Ursprungszustand wiederherstellen
+            stBox.className = defaultClass;
+            chBox.className = defaultClass;
+          }
+        }
+      }
     }
   </script>
 </body>
