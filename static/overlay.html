@@ -54,9 +54,20 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
       background: linear-gradient(180deg, #ffbe0b 0%, #fb5607 100%);
       box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.6);
     }
+
+    /* Hintergründe für OBS-Modi */
+    body.bg-default {
+      background-color: rgb(15 23 42 / 0.9);
+    }
+    body.bg-greenscreen {
+      background-color: #00ff00 !important;
+    }
+    body.bg-transparent-mode {
+      background-color: transparent !important;
+    }
   </style>
 </head>
-<body class="bg-slate-900/90 min-h-screen text-white flex flex-col items-center justify-between p-6 select-none overflow-hidden">
+<body id="page-body" class="bg-default min-h-screen text-white flex flex-col items-center justify-between p-6 select-none overflow-hidden">
 
   <!-- PIN AUTH DIALOG -->
   <div id="auth-box" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center">
@@ -109,6 +120,17 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
   <script>
     const VALID_PIN = "1234";
     const TOTAL_ROUNDS = 7;
+    const bodyEl = document.getElementById("page-body");
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Hintergrundmodus steuern (?green oder ?transparent)
+    if (urlParams.has("green")) {
+      bodyEl.classList.remove("bg-default");
+      bodyEl.classList.add("bg-greenscreen");
+    } else if (urlParams.has("transparent")) {
+      bodyEl.classList.remove("bg-default");
+      bodyEl.classList.add("bg-transparent-mode");
+    }
 
     // Spielkarten für Runden 1 bis 7 generieren
     const cardsWrapper = document.getElementById("cards-wrapper");
@@ -129,7 +151,6 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
       `;
     }
 
-    // 7 Rundenergebnis-Slots generieren
     function generateRoundSlots(elementId, prefix) {
       const el = document.getElementById(elementId);
       for (let r = 1; r <= TOTAL_ROUNDS; r++) {
@@ -143,14 +164,12 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
     generateRoundSlots("rounds-streamer", "streamer-r");
     generateRoundSlots("rounds-chat", "chat-r");
 
-    // Authentifizierung freischalten
     function unlockUI() {
       document.getElementById("auth-box").classList.add("hidden");
       document.getElementById("scoreboard-container").classList.remove("hidden");
       connectWebSocket();
     }
 
-    // Manuelle PIN-Prüfung
     function checkPin() {
       const pin = document.getElementById("pin-input").value;
       if (pin === VALID_PIN) {
@@ -160,13 +179,11 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
       }
     }
 
-    // URL-Prüfung auf '?nopin' (z. B. für Tests oder OBS-Quellen)
-    const urlParams = new URLSearchParams(window.location.search);
+    // Bypass falls '?nopin' vorhanden ist
     if (urlParams.has("nopin")) {
       unlockUI();
     }
 
-    // WebSocket-Verbindung herstellen
     function connectWebSocket() {
       const protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const ws = new WebSocket(`${protocol}//${location.host}/ws`);
@@ -181,14 +198,12 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
       };
     }
 
-    // UI anhand des Server-Zustands rendern
     function renderState(state) {
       document.getElementById("score-streamer").innerText = String(state.score_streamer).padStart(2, '0');
       document.getElementById("score-chat").innerText = String(state.score_chat).padStart(2, '0');
 
       const currentRound = Math.min(Math.max(1, state.round), TOTAL_ROUNDS);
 
-      // Karten aufdecken bis zur aktuellen Runde
       for (let r = 1; r <= TOTAL_ROUNDS; r++) {
         const card = document.getElementById(`card-${r}`);
         if (r <= currentRound) {
@@ -198,7 +213,6 @@ an (ideal auch als Browser-Quelle in OBS Studio).-->
         }
       }
 
-      // Rundenkästchen einfärben oder neutralisieren (entfärben)
       if (state.round_history) {
         for (let r = 1; r <= TOTAL_ROUNDS; r++) {
           const outcome = state.round_history[String(r)];

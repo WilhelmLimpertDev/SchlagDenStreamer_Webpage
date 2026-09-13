@@ -21,10 +21,9 @@
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
 
-  <!-- ================= HEADER ================= -->
+  <!-- HEADER -->
   <header class="w-full border-b border-gray-800/80 bg-gray-900/40 backdrop-blur px-6 py-4 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <!-- Echtes Twelfthlion Logo -->
       <a href="/" title="Zurück zur Startseite" class="transition-transform hover:scale-105 active:scale-95">
         <img 
           src="/Grafik/logo_twelfthlion_gemini_ai.png" 
@@ -45,7 +44,7 @@
     </div>
   </header>
 
-  <!-- ================= HAUPT-BEREICH ================= -->
+  <!-- HAUPT-BEREICH -->
   <main class="w-full max-w-4xl mx-auto px-6 py-12 flex-1 flex flex-col justify-center">
     
     <div class="text-center mb-12">
@@ -58,7 +57,6 @@
       <p class="text-xs text-gray-400 mt-1">Echtzeit-Synchronisation für Streamer, Moderation und Chat</p>
     </div>
 
-    <!-- KARTEN ZU DEN BEIDEN BEREICHEN -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
       <!-- 1. STREAMER / OVERLAY -->
@@ -77,22 +75,30 @@
           </p>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-2.5">
           <a href="/overlay.html" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-extrabold py-3 rounded-xl transition-transform active:scale-98 shadow-lg">
-            <span>Overlay aufrufen (mit PIN)</span>
+            <span>Overlay im Browser (Vollbild)</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </a>
           
-          <!-- Copy-Button für OBS Link -->
+          <!-- OBS Green-Screen Link kopieren -->
           <button 
-            id="copy-obs-btn" 
-            onclick="copyObsLink()" 
+            id="copy-green-btn" 
+            onclick="copyLink('?green&nopin', 'copy-green-btn', 'Green-Screen Link (OBS)')" 
+            class="w-full inline-flex items-center justify-center gap-2 bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 text-xs font-semibold py-2.5 rounded-xl border border-emerald-800/80 transition-all active:scale-98 cursor-pointer"
+          >
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>Green-Screen Link kopieren (Chroma-Key)</span>
+          </button>
+
+          <!-- OBS Transparent Link kopieren -->
+          <button 
+            id="copy-trans-btn" 
+            onclick="copyLink('?transparent&nopin', 'copy-trans-btn', 'Transparent Link (OBS)')" 
             class="w-full inline-flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold py-2.5 rounded-xl border border-gray-700 transition-all active:scale-98 cursor-pointer"
           >
-            <svg id="copy-icon" class="w-4 h-4 text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
-            </svg>
-            <span id="copy-text">OBS-Browserquelle Link kopieren</span>
+            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+            <span>Transparent Link kopieren (Alpha-Kanal)</span>
           </button>
         </div>
       </div>
@@ -129,39 +135,24 @@
 
   </main>
 
-  <!-- ================= FOOTER ================= -->
+  <!-- FOOTER -->
   <footer class="w-full border-t border-gray-800/80 py-6 px-6 text-center text-xs text-gray-400">
     <p>© 2026 twelfthlion.com · Powered by Node.js & WebSockets</p>
   </footer>
 
   <script>
-    function copyObsLink() {
-      // Ermittelt dynamisch die aktuelle Domain und hängt '/overlay.html?nopin' an
-      const obsUrl = `${window.location.origin}/overlay.html?nopin`;
+    function copyLink(queryParam, btnId, defaultText) {
+      const fullUrl = `${window.location.origin}/overlay.html${queryParam}`;
+      const btn = document.getElementById(btnId);
+      const originalHTML = btn.innerHTML;
 
-      navigator.clipboard.writeText(obsUrl).then(() => {
-        const btn = document.getElementById("copy-obs-btn");
-        const text = document.getElementById("copy-text");
-        const icon = document.getElementById("copy-icon");
-
-        // Visuelles Feedback
-        btn.classList.add("border-emerald-500", "bg-emerald-950/40", "text-emerald-300");
-        btn.classList.remove("border-gray-700", "bg-gray-800", "text-gray-200");
-        text.innerText = "✓ URL in Zwischenablage kopiert!";
-        icon.classList.add("text-emerald-400");
-        icon.classList.remove("text-gray-400");
-
-        // Nach 2 Sekunden Zustand zurücksetzen
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        btn.innerHTML = `<span class="text-emerald-400 font-bold">✓ Link in Zwischenablage kopiert!</span>`;
         setTimeout(() => {
-          btn.classList.remove("border-emerald-500", "bg-emerald-950/40", "text-emerald-300");
-          btn.classList.add("border-gray-700", "bg-gray-800", "text-gray-200");
-          text.innerText = "OBS-Browserquelle Link kopieren";
-          icon.classList.remove("text-emerald-400");
-          icon.classList.add("text-gray-400");
+          btn.innerHTML = originalHTML;
         }, 2000);
-      }).catch(err => {
-        console.error("Kopieren fehlgeschlagen:", err);
-        prompt("Kopiere den Link für OBS bitte manuell:", obsUrl);
+      }).catch(() => {
+        prompt("Kopiere den Link bitte manuell:", fullUrl);
       });
     }
   </script>
