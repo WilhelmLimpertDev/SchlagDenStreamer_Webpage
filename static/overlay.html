@@ -78,37 +78,53 @@
   </div>
 
   <!-- HAUPT-CONTAINER -->
-  <main id="scoreboard-container" class="hidden w-full max-w-6xl flex flex-col items-center justify-center my-auto gap-8">
+  <main id="scoreboard-container" class="hidden w-full max-w-7xl flex flex-col items-center justify-center my-auto gap-5">
     
-    <!-- 1. OBERES DRITTEL: 7 SPIELKARTEN MIT SPIELNAMEN -->
-    <header class="w-full flex justify-center items-center gap-3 card-perspective min-h-[140px]">
-      <div id="cards-wrapper" class="flex gap-2.5 md:gap-3.5 w-full justify-center"></div>
+    <!-- 1. OBERES DRITTEL: DYNAMISCHE SPIELKARTEN -->
+    <header class="w-full flex justify-center items-center gap-2 card-perspective min-h-[140px]">
+      <div id="cards-wrapper" class="flex flex-wrap gap-2 md:gap-2.5 w-full justify-center"></div>
     </header>
+
+    <!-- ZWISCHENRUNDEN-ANZEIGE: BEST OF [X] -->
+    <div id="subrounds-bar" class="hidden w-full max-w-2xl bg-gray-950/95 border-2 border-yellow-500/80 p-3.5 rounded-2xl shadow-2xl backdrop-blur transition-all duration-500">
+      <div class="flex items-center justify-between text-xs font-bold text-gray-300 uppercase tracking-widest mb-2 px-2">
+        <span id="sub-name-p1" class="text-blue-400 font-extrabold text-sm truncate max-w-[180px]">Spieler 1</span>
+        <span class="text-yellow-400 bg-yellow-500/15 px-3 py-1 rounded-full border border-yellow-500/40 text-[11px] font-black tracking-wider">
+          ⚡ <span id="sub-title-info">Best of 3</span>
+        </span>
+        <span id="sub-name-p2" class="text-purple-400 font-extrabold text-sm truncate max-w-[180px]">Spieler 2</span>
+      </div>
+      <div class="flex items-center justify-between gap-4 px-2">
+        <div id="sub-dots-p1" class="flex items-center gap-2"></div>
+        <div class="text-gray-500 font-black text-xs">VS</div>
+        <div id="sub-dots-p2" class="flex items-center gap-2 flex-row-reverse"></div>
+      </div>
+    </div>
 
     <!-- 2. MITTLERES DRITTEL: TAFEL -->
     <section class="w-full max-w-4xl gold-chassis p-4 md:p-6 rounded-3xl border-4 border-white/70">
       <div class="grid grid-cols-2 gap-4 md:gap-8">
         
-        <!-- Streamer: Oldmanstuff -->
+        <!-- Spieler 1 -->
         <article class="flex flex-col items-center">
-          <h2 class="font-header text-3xl md:text-5xl uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          <h2 id="label-player1" class="font-header text-3xl md:text-5xl uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate max-w-full text-center">
             Oldmanstuff
           </h2>
           <div class="w-full h-36 md:h-44 matrix-bg rounded-xl border-4 border-gray-900 shadow-inner flex items-center justify-center relative overflow-hidden mt-1">
             <span id="score-streamer" class="font-digital text-7xl md:text-8xl font-black text-amber-400 tracking-wider">00</span>
           </div>
-          <div class="flex gap-1.5 md:gap-2 mt-3" id="rounds-streamer"></div>
+          <div class="flex flex-wrap justify-center gap-1 md:gap-1.5 mt-3" id="rounds-streamer"></div>
         </article>
 
-        <!-- Chat: Kuhmunity -->
+        <!-- Spieler 2 -->
         <article class="flex flex-col items-center">
-          <h2 class="font-header text-3xl md:text-5xl uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          <h2 id="label-player2" class="font-header text-3xl md:text-5xl uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate max-w-full text-center">
             Kuhmunity
           </h2>
           <div class="w-full h-36 md:h-44 matrix-bg rounded-xl border-4 border-gray-900 shadow-inner flex items-center justify-center relative overflow-hidden mt-1">
             <span id="score-chat" class="font-digital text-7xl md:text-8xl font-black text-amber-400 tracking-wider">00</span>
           </div>
-          <div class="flex gap-1.5 md:gap-2 mt-3" id="rounds-chat"></div>
+          <div class="flex flex-wrap justify-center gap-1 md:gap-1.5 mt-3" id="rounds-chat"></div>
         </article>
 
       </div>
@@ -118,19 +134,11 @@
 
   <script>
     const VALID_PIN = "1234";
-    const TOTAL_ROUNDS = 7;
     const bodyEl = document.getElementById("page-body");
     const urlParams = new URLSearchParams(window.location.search);
 
-    const GAMES_LIST = [
-      { round: 1, name: "Jackbox: Fibbage", tag: null },
-      { round: 2, name: "Lach-Challenge", tag: null },
-      { round: 3, name: "Jackbox: Quiplash", tag: null },
-      { round: 4, name: "Stadt, Land, Fluss", tag: null },
-      { round: 5, name: "2. Lach-Challenge", tag: null },
-      { round: 6, name: "Jackbox: Survey Scramble", tag: null },
-      { round: 7, name: "Quiz", tag: "Finales Game" }
-    ];
+    let currentTotalRounds = 0;
+    let currentGamesSignature = "";
 
     if (urlParams.has("green")) {
       bodyEl.classList.remove("bg-default");
@@ -140,60 +148,6 @@
       bodyEl.classList.add("bg-transparent-mode");
     }
 
-    const cardsWrapper = document.getElementById("cards-wrapper");
-    GAMES_LIST.forEach((game) => {
-      const r = game.round;
-      const badgeHtml = game.tag 
-        ? `<span class="bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full mb-1 tracking-wider shadow animate-pulse">${game.tag}</span>` 
-        : '';
-
-      cardsWrapper.innerHTML += `
-        <div id="card-${r}" class="w-24 md:w-32 h-32 md:h-36 card-inner">
-          
-          <!-- Vorderseite (Verdeckt) -->
-          <div class="card-front bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900 border-2 border-white/40 shadow-lg flex flex-col items-center justify-between p-2">
-            <span class="text-[10px] text-blue-200/80 font-bold uppercase tracking-wider">Runde ${r}</span>
-            <div class="w-10 h-14 border border-dashed border-white/30 rounded-lg flex items-center justify-center">
-              <span class="text-white/40 font-bold text-base">?</span>
-            </div>
-            <span class="text-[9px] font-bold text-amber-400">${r} ${r === 1 ? 'Punkt' : 'Punkte'}</span>
-          </div>
-
-          <!-- Rückseite (Aufgedeckt) -->
-          <div class="card-back bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 border-2 border-white shadow-xl flex flex-col items-center justify-between p-2 text-slate-950 text-center">
-            <div class="flex flex-col items-center w-full">
-              <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-800">Runde ${r}</span>
-              ${badgeHtml}
-            </div>
-
-            <div class="font-game font-bold text-xs md:text-sm leading-tight text-slate-950 px-1 py-0.5">
-              ${game.name}
-            </div>
-
-            <div class="w-full border-t border-amber-600/40 pt-1">
-              <span class="font-digital text-[10px] font-black text-slate-900 tracking-wider">
-                +${r} ${r === 1 ? 'PKT' : 'PKTE'}
-              </span>
-            </div>
-          </div>
-
-        </div>
-      `;
-    });
-
-    function generateRoundSlots(elementId, prefix) {
-      const el = document.getElementById(elementId);
-      for (let r = 1; r <= TOTAL_ROUNDS; r++) {
-        el.innerHTML += `
-          <div id="${prefix}-${r}" class="w-6 h-6 md:w-8 md:h-8 rounded bg-gray-950 border border-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 transition-all duration-300">
-            ${r}
-          </div>
-        `;
-      }
-    }
-    generateRoundSlots("rounds-streamer", "streamer-r");
-    generateRoundSlots("rounds-chat", "chat-r");
-
     function unlockUI() {
       document.getElementById("auth-box").classList.add("hidden");
       document.getElementById("scoreboard-container").classList.remove("hidden");
@@ -202,73 +156,193 @@
 
     function checkPin() {
       const pin = document.getElementById("pin-input").value;
-      if (pin === VALID_PIN) {
-        unlockUI();
-      } else {
-        alert("Falsche PIN!");
-      }
+      if (pin === VALID_PIN) unlockUI();
+      else alert("Falsche PIN!");
     }
 
     if (urlParams.has("nopin")) {
       unlockUI();
     }
 
-function connectWebSocket() {
+    function connectWebSocket() {
       const protocol = location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${location.host}/ws`;
-      const ws = new WebSocket(wsUrl);
+      const ws = new WebSocket(`${protocol}//${location.host}/ws`);
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          renderState(data); // bzw. updateUI(data) in host.html
+          renderState(data);
         } catch (e) {
-          console.error("Datenverarbeitungsfehler:", e);
+          console.error("WS Parse Error:", e);
         }
       };
 
-      ws.onerror = (err) => {
-        console.warn("WebSocket Fehler aufgetreten:", err);
-      };
+      ws.onclose = () => setTimeout(connectWebSocket, 2000);
+      ws.onerror = (e) => console.warn("WS Error:", e);
+    }
 
-      ws.onclose = () => {
-        // Bei Verbindungsunterbrechung alle 2 Sekunden automatisch neu versuchen
-        setTimeout(connectWebSocket, 2000);
-      };
+    function rebuildLayoutIfNecessary(state) {
+      const totalRounds = state.total_rounds || 8;
+      const games = state.games || [];
+      const sig = `${totalRounds}-${JSON.stringify(games)}`;
+
+      if (sig === currentGamesSignature) return;
+      currentGamesSignature = sig;
+      currentTotalRounds = totalRounds;
+
+      const cardsWrapper = document.getElementById("cards-wrapper");
+      cardsWrapper.innerHTML = "";
+
+      const cardWidthClass = totalRounds > 8 ? "w-18 md:w-24" : "w-20 md:w-28";
+
+      games.forEach((game) => {
+        const r = game.round;
+        const pts = game.points;
+        const isFinal = (r === totalRounds);
+
+        let badgeHtml = '';
+        if (isFinal) {
+          badgeHtml = `<span class="bg-red-600 text-white text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full mb-0.5 tracking-wider shadow animate-pulse">Finale</span>`;
+        } else if (game.has_subrounds) {
+          const count = game.subrounds_target || 3;
+          badgeHtml = `<span class="bg-indigo-600 text-white text-[7px] font-bold uppercase px-1.5 py-0.5 rounded-full mb-0.5 tracking-wider shadow">Best of ${count}</span>`;
+        }
+
+        cardsWrapper.innerHTML += `
+          <div id="card-${r}" class="${cardWidthClass} h-32 md:h-36 card-inner">
+            <div class="card-front bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900 border-2 border-white/40 shadow-lg flex flex-col items-center justify-between p-2">
+              <span class="text-[9px] text-blue-200/80 font-bold uppercase tracking-wider">Runde ${r}</span>
+              <div class="w-8 h-12 border border-dashed border-white/30 rounded-lg flex items-center justify-center">
+                <span class="text-white/40 font-bold text-sm">?</span>
+              </div>
+              <span class="text-[9px] font-bold text-amber-400">${pts} ${pts === 1 ? 'Punkt' : 'Punkte'}</span>
+            </div>
+
+            <div class="card-back bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 border-2 border-white shadow-xl flex flex-col items-center justify-between p-1.5 text-slate-950 text-center">
+              <div class="flex flex-col items-center w-full">
+                <span class="text-[8px] font-extrabold uppercase tracking-wider text-slate-800">Runde ${r}</span>
+                ${badgeHtml}
+              </div>
+
+              <div class="font-game font-bold text-[11px] md:text-xs leading-tight text-slate-950 px-0.5">
+                ${game.name}
+              </div>
+
+              <div class="w-full border-t border-slate-950/20 pt-1">
+                <span class="font-digital text-[9px] font-black text-slate-900 tracking-wider">
+                  ${pts === 0 ? '0 PKTE' : `+${pts} PKTE`}
+                </span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      const streamerSlots = document.getElementById("rounds-streamer");
+      const chatSlots = document.getElementById("rounds-chat");
+      streamerSlots.innerHTML = "";
+      chatSlots.innerHTML = "";
+
+      for (let r = 1; r <= totalRounds; r++) {
+        const slotHtml = (prefix) => `
+          <div id="${prefix}-${r}" class="w-5 h-5 md:w-7 md:h-7 rounded bg-gray-950 border border-gray-700 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-300">
+            ${r}
+          </div>
+        `;
+        streamerSlots.innerHTML += slotHtml("streamer-r");
+        chatSlots.innerHTML += slotHtml("chat-r");
+      }
     }
 
     function renderState(state) {
+      rebuildLayoutIfNecessary(state);
+
+      const p1 = state.player1_name || "Oldmanstuff";
+      const p2 = state.player2_name || "Kuhmunity";
+
+      document.getElementById("label-player1").innerText = p1;
+      document.getElementById("label-player2").innerText = p2;
       document.getElementById("score-streamer").innerText = String(state.score_streamer).padStart(2, '0');
       document.getElementById("score-chat").innerText = String(state.score_chat).padStart(2, '0');
 
-      const currentRound = Math.min(Math.max(1, state.round), TOTAL_ROUNDS);
+      const totalRounds = state.total_rounds || 8;
+      const currentRound = Math.min(Math.max(1, state.round), totalRounds);
 
-      for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+      // Kacheln umdrehen
+      for (let r = 1; r <= totalRounds; r++) {
         const card = document.getElementById(`card-${r}`);
-        if (r <= currentRound) {
-          card.classList.add("card-flipped");
-        } else {
-          card.classList.remove("card-flipped");
+        if (card) {
+          if (r <= currentRound) card.classList.add("card-flipped");
+          else card.classList.remove("card-flipped");
         }
       }
 
+      // Best of [X] Anzeige mit genauer Kreis-Anzahl und Grün/Rot Verlauf
+      const activeGame = (state.games || []).find(g => g.round === currentRound);
+      const subBar = document.getElementById("subrounds-bar");
+
+      if (activeGame && activeGame.has_subrounds) {
+        subBar.classList.remove("hidden");
+        document.getElementById("sub-name-p1").innerText = p1;
+        document.getElementById("sub-name-p2").innerText = p2;
+
+        const bestOfCount = activeGame.subrounds_target || 3;
+        document.getElementById("sub-title-info").innerText = `Best of ${bestOfCount}`;
+
+        // Verlauf der Minirunden holen: Array mit "p1" oder "p2"
+        const subHistory = (state.sub_history && state.sub_history[String(currentRound)]) || [];
+
+        const dotsP1 = document.getElementById("sub-dots-p1");
+        const dotsP2 = document.getElementById("sub-dots-p2");
+        dotsP1.innerHTML = "";
+        dotsP2.innerHTML = "";
+
+        // Erzeugt GENAU 'bestOfCount' Kreise (z. B. 3 bei Best of 3)
+        for (let i = 0; i < bestOfCount; i++) {
+          const outcome = subHistory[i]; // "p1", "p2" oder undefined (noch nicht gespielt)
+
+          let classP1 = "bg-gray-900 border-gray-700";
+          let classP2 = "bg-gray-900 border-gray-700";
+
+          if (outcome === "p1") {
+            // Spieler 1 gewinnt diese Minirunde: P1 GRÜN, P2 ROT
+            classP1 = "bg-green-500 border-white shadow-[0_0_12px_rgba(34,197,94,0.9)] scale-110";
+            classP2 = "bg-red-600 border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.7)]";
+          } else if (outcome === "p2") {
+            // Spieler 2 gewinnt diese Minirunde: P2 GRÜN, P1 ROT
+            classP1 = "bg-red-600 border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.7)]";
+            classP2 = "bg-green-500 border-white shadow-[0_0_12px_rgba(34,197,94,0.9)] scale-110";
+          }
+
+          dotsP1.innerHTML += `<div class="w-6 h-6 rounded-full border-2 ${classP1} transition-all duration-300"></div>`;
+          dotsP2.innerHTML += `<div class="w-6 h-6 rounded-full border-2 ${classP2} transition-all duration-300"></div>`;
+        }
+      } else {
+        subBar.classList.add("hidden");
+      }
+
+      // Haupt-Rundenkästchen: Gewinner GRÜN, Verlierer ROT, Offen NEUTRAL
       if (state.round_history) {
-        for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+        for (let r = 1; r <= totalRounds; r++) {
           const outcome = state.round_history[String(r)];
           const stBox = document.getElementById(`streamer-r-${r}`);
           const chBox = document.getElementById(`chat-r-${r}`);
 
-          const defaultClass = "w-6 h-6 md:w-8 md:h-8 rounded bg-gray-950 border border-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 transition-all duration-300";
+          const defaultClass = "w-5 h-5 md:w-7 md:h-7 rounded bg-gray-950 border border-gray-700 flex items-center justify-center text-[11px] font-bold text-gray-500 transition-all duration-300";
+          const wonClass = "w-5 h-5 md:w-7 md:h-7 rounded bg-green-500 text-black font-black border-2 border-white flex items-center justify-center text-[11px] shadow-[0_0_12px_rgba(34,197,94,0.8)]";
+          const lostClass = "w-5 h-5 md:w-7 md:h-7 rounded bg-red-600 text-white font-black border-2 border-red-400 flex items-center justify-center text-[11px] shadow-[0_0_10px_rgba(239,68,68,0.7)]";
 
-          if (outcome === "streamer") {
-            stBox.className = "w-6 h-6 md:w-8 md:h-8 rounded bg-green-500 text-black font-black border border-white flex items-center justify-center text-xs shadow-md";
-            chBox.className = "w-6 h-6 md:w-8 md:h-8 rounded bg-red-950/80 text-red-400/60 border border-red-900/60 flex items-center justify-center text-xs";
-          } else if (outcome === "chat") {
-            stBox.className = "w-6 h-6 md:w-8 md:h-8 rounded bg-red-950/80 text-red-400/60 border border-red-900/60 flex items-center justify-center text-xs";
-            chBox.className = "w-6 h-6 md:w-8 md:h-8 rounded bg-green-500 text-black font-black border border-white flex items-center justify-center text-xs shadow-md";
-          } else {
-            stBox.className = defaultClass;
-            chBox.className = defaultClass;
+          if (stBox && chBox) {
+            if (outcome === "streamer") {
+              stBox.className = wonClass;  // Spieler 1 GRÜN
+              chBox.className = lostClass; // Spieler 2 ROT
+            } else if (outcome === "chat") {
+              stBox.className = lostClass; // Spieler 1 ROT
+              chBox.className = wonClass;  // Spieler 2 GRÜN
+            } else {
+              stBox.className = defaultClass;
+              chBox.className = defaultClass;
+            }
           }
         }
       }

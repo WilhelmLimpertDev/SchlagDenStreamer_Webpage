@@ -1,6 +1,3 @@
-<!--Hier steuert der Mod den Spielstand. Die Änderungen werden sofort über den REST-Endpunkt geschickt
-    und vom Backend per WebSocket an die Streamer-Ansicht übertragen.-->
-    
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -11,7 +8,7 @@
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col items-center justify-center py-8 px-4">
 
-  <!-- ================= PIN AUTH DIALOG ================= -->
+  <!-- PIN AUTH DIALOG -->
   <div id="auth-box" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center p-4">
     <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl text-center w-full max-w-sm">
       <div class="w-12 h-12 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
@@ -29,115 +26,242 @@
     </div>
   </div>
 
-  <!-- ================= HAUPT CONTROL PANEL ================= -->
-  <main id="host-panel" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-xl">
-    <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-800">
+  <!-- HAUPT CONTAINER -->
+  <main id="host-panel" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-2xl">
+    
+    <!-- HEADER -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-800">
       <div>
         <h1 class="text-2xl font-black text-yellow-500 tracking-wide">MOD CONTROL PANEL</h1>
-        <p class="text-xs text-gray-400">Oldmanstuff vs. Kuhmunity</p>
-      </div>
-      <div class="text-right">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-950 text-green-400 border border-green-800">
-          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-          Verbunden
-        </span>
-      </div>
-    </div>
-
-    <!-- PUNKTESTÄNDE ANPASSEN -->
-    <div class="grid grid-cols-2 gap-4 mb-6">
-      <!-- Oldmanstuff -->
-      <div class="bg-gray-800/70 p-4 rounded-xl border border-blue-600/40 text-center">
-        <h2 class="font-bold text-blue-400 uppercase tracking-wider text-sm mb-1">Oldmanstuff</h2>
-        <div id="display-score-streamer" class="text-4xl font-extrabold text-white mb-3">0</div>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="sendAction('inc_streamer')" class="bg-blue-600 hover:bg-blue-500 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">+1</button>
-          <button onclick="sendAction('dec_streamer')" class="bg-blue-900 hover:bg-blue-800 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">-1</button>
-        </div>
+        <p id="sub-header-match" class="text-xs text-gray-400">Oldmanstuff vs. Kuhmunity</p>
       </div>
 
-      <!-- Kuhmunity -->
-      <div class="bg-gray-800/70 p-4 rounded-xl border border-purple-600/40 text-center">
-        <h2 class="font-bold text-purple-400 uppercase tracking-wider text-sm mb-1">Kuhmunity</h2>
-        <div id="display-score-chat" class="text-4xl font-extrabold text-white mb-3">0</div>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="sendAction('inc_chat')" class="bg-purple-600 hover:bg-purple-500 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">+1</button>
-          <button onclick="sendAction('dec_chat')" class="bg-purple-900 hover:bg-purple-800 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">-1</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RUNDEN-SCHNELLSTEUERUNG (AKTIVE RUNDE) -->
-    <div class="bg-gray-800/40 border border-gray-700 p-4 rounded-xl mb-6">
-      <div class="flex justify-between items-center mb-3">
-        <span class="text-sm font-semibold text-gray-300">Aktuelle Runde: <span id="current-round-text" class="text-yellow-400 font-bold text-lg">1</span> / 7</span>
-        <div class="flex gap-2">
-          <button onclick="sendAction('prev_round')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">◀ Zurück</button>
-          <button onclick="sendAction('next_round')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">Vor ▶</button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <button onclick="sendAction('win_streamer')" class="bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 py-3 rounded-lg font-bold text-sm shadow active:scale-95 transition-transform">
-          🏆 Runde an Oldmanstuff
+      <div class="flex items-center gap-2 bg-gray-800 p-1 rounded-xl border border-gray-700">
+        <button id="tab-btn-live" onclick="switchTab('live')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-yellow-500 text-black shadow transition-all">
+          🎮 Steuerung
         </button>
-        <button onclick="sendAction('win_chat')" class="bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 py-3 rounded-lg font-bold text-sm shadow active:scale-95 transition-transform">
-          🏆 Runde an Kuhmunity
+        <button id="tab-btn-settings" onclick="switchTab('settings')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition-all">
+          ⚙️ Einstellungen
         </button>
       </div>
     </div>
 
-    <!-- RUNDENÜBERSICHT (ALLE 7 RUNDEN EINZELN STEUERBAR) -->
-    <div class="mb-6">
-      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Alle Runden (Status & Korrektur)</h3>
-      <div id="rounds-table" class="space-y-2">
-        <!-- Runden 1 bis 7 werden per JS generiert -->
+    <!-- TAB 1: LIVE STEUERUNG -->
+    <div id="view-live">
+      
+      <!-- PUNKTESTÄNDE ANPASSEN -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-gray-800/70 p-4 rounded-xl border border-blue-600/40 text-center">
+          <h2 id="btn-label-player1" class="font-bold text-blue-400 uppercase tracking-wider text-sm mb-1 truncate">Oldmanstuff</h2>
+          <div id="display-score-streamer" class="text-4xl font-extrabold text-white mb-3">0</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="sendAction('inc_streamer')" class="bg-blue-600 hover:bg-blue-500 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">+1</button>
+            <button onclick="sendAction('dec_streamer')" class="bg-blue-900 hover:bg-blue-800 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">-1</button>
+          </div>
+        </div>
+
+        <div class="bg-gray-800/70 p-4 rounded-xl border border-purple-600/40 text-center">
+          <h2 id="btn-label-player2" class="font-bold text-purple-400 uppercase tracking-wider text-sm mb-1 truncate">Kuhmunity</h2>
+          <div id="display-score-chat" class="text-4xl font-extrabold text-white mb-3">0</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="sendAction('inc_chat')" class="bg-purple-600 hover:bg-purple-500 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">+1</button>
+            <button onclick="sendAction('dec_chat')" class="bg-purple-900 hover:bg-purple-800 py-2 rounded-lg font-bold text-lg active:scale-95 transition-transform">-1</button>
+          </div>
+        </div>
       </div>
+
+      <!-- RUNDEN-SCHNELLSTEUERUNG -->
+      <div class="bg-gray-800/40 border border-gray-700 p-4 rounded-xl mb-6">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm font-semibold text-gray-300">Aktuelle Runde: <span id="current-round-text" class="text-yellow-400 font-bold text-lg">1</span> / <span id="max-rounds-text">8</span></span>
+          <div class="flex gap-2">
+            <button onclick="sendAction('prev_round')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs font-semibold">◀ Zurück</button>
+            <button onclick="sendAction('next_round')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs font-semibold">Vor ▶</button>
+          </div>
+        </div>
+
+        <!-- DYNAMISCHES PANEL FÜR "BEST OF [X]" -->
+        <div id="host-subrounds-box" class="hidden mb-4 bg-gray-950 p-4 rounded-xl border-2 border-yellow-500/50 shadow-lg">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-xs font-black text-yellow-400 uppercase tracking-wider">⚡ <span id="host-sub-title">Best of 3</span></span>
+            <span class="text-xs text-gray-400">Gespielt: <span id="host-sub-played" class="font-bold text-white">0</span> / <span id="host-sub-max">3</span></span>
+          </div>
+
+          <!-- Live Punktevergabe pro Minirunde -->
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <button onclick="sendSubWin('p1')" class="bg-blue-600 hover:bg-blue-500 py-2.5 px-3 rounded-lg font-extrabold text-xs shadow active:scale-95 transition-transform">
+              ✓ Runde an <span id="sub-host-name-p1">Spieler 1</span>
+            </button>
+            <button onclick="sendSubWin('p2')" class="bg-purple-600 hover:bg-purple-500 py-2.5 px-3 rounded-lg font-extrabold text-xs shadow active:scale-95 transition-transform">
+              ✓ Runde an <span id="sub-host-name-p2">Spieler 2</span>
+            </button>
+          </div>
+
+          <!-- Rundenverlauf visuell im Host-Panel -->
+          <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800 flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-gray-400">Aktueller Zwischenstand:</span>
+            <div id="host-sub-history-pills" class="flex items-center gap-1.5"></div>
+          </div>
+
+          <div class="flex justify-between items-center text-[11px] pt-1 border-t border-gray-800">
+            <button onclick="sendSubAction('undo_sub_win')" class="text-gray-400 hover:text-white underline">↶ Letzte Runde rückgängig</button>
+            <button onclick="sendSubAction('reset_sub')" class="text-red-400 hover:text-red-300">Minirunden leeren</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="sendAction('win_streamer')" class="bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 py-3 rounded-lg font-bold text-sm shadow active:scale-95 transition-transform truncate px-2">
+            🏆 Hauptrunde an <span id="quick-win-p1">Oldmanstuff</span>
+          </button>
+          <button onclick="sendAction('win_chat')" class="bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 py-3 rounded-lg font-bold text-sm shadow active:scale-95 transition-transform truncate px-2">
+            🏆 Hauptrunde an <span id="quick-win-p2">Kuhmunity</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ALLE RUNDEN IM DETAIL -->
+      <div class="mb-6">
+        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Alle Runden (Status & Korrektur)</h3>
+        <div id="rounds-table" class="space-y-2"></div>
+      </div>
+
+      <div class="pt-4 border-t border-gray-800 text-center">
+        <button onclick="confirmReset()" class="text-red-500 hover:text-red-400 text-xs uppercase tracking-wider font-semibold">
+          ⚠️ Komplettes Spiel zurücksetzen (Reset)
+        </button>
+      </div>
+
     </div>
 
-    <!-- RESET BUTTON -->
-    <div class="pt-4 border-t border-gray-800 text-center">
-      <button onclick="confirmReset()" class="text-red-500 hover:text-red-400 text-xs uppercase tracking-wider font-semibold">
-        ⚠️ Komplettes Spiel zurücksetzen (Reset)
-      </button>
+    <!-- TAB 2: EINSTELLUNGEN -->
+    <div id="view-settings" class="hidden">
+      <div class="bg-gray-800/40 border border-gray-700 p-5 rounded-xl mb-6">
+        
+        <!-- Spielernamen -->
+        <div class="mb-5 pb-4 border-b border-gray-700">
+          <label class="block text-sm font-bold text-white mb-1">Spieler- / Teamnamen</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-blue-400 uppercase tracking-wider mb-1">Spieler 1</label>
+              <input type="text" id="settings-player1" placeholder="Oldmanstuff" class="w-full bg-gray-900 border border-gray-700 focus:border-blue-500 rounded-lg px-3 py-2 text-sm text-white font-bold focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-purple-400 uppercase tracking-wider mb-1">Spieler 2</label>
+              <input type="text" id="settings-player2" placeholder="Kuhmunity" class="w-full bg-gray-900 border border-gray-700 focus:border-purple-500 rounded-lg px-3 py-2 text-sm text-white font-bold focus:outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- Rundenanzahl -->
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-700">
+          <div>
+            <label class="block text-sm font-bold text-white">Anzahl der Spielrunden</label>
+            <p class="text-xs text-gray-400">1 bis 10 Runden für den Stream</p>
+          </div>
+          <select id="settings-total-rounds" onchange="renderSettingsInputs()" class="bg-gray-900 border border-gray-600 text-yellow-400 font-bold px-3 py-1.5 rounded-lg focus:outline-none focus:border-yellow-400 text-base">
+            <option value="1">1 Runde</option>
+            <option value="2">2 Runden</option>
+            <option value="3">3 Runden</option>
+            <option value="4">4 Runden</option>
+            <option value="5">5 Runden</option>
+            <option value="6">6 Runden</option>
+            <option value="7">7 Runden</option>
+            <option value="8" selected>8 Runden</option>
+            <option value="9">9 Runden</option>
+            <option value="10">10 Runden</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <p class="text-xs font-bold uppercase text-gray-400 tracking-wider">Spiele, Punkte & Best-of Modi</p>
+        </div>
+
+        <div id="settings-games-list" class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+          <!-- Inputs werden dynamisch erzeugt -->
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-gray-700 flex justify-end gap-3">
+          <button onclick="switchTab('live')" class="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold">
+            Abbrechen
+          </button>
+          <button onclick="saveSettings()" class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-black font-extrabold text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-transform">
+            💾 Einstellungen speichern & anwenden
+          </button>
+        </div>
+
+      </div>
+
+      <!-- BACKUP BEREICH (EXPORT & IMPORT MIT SPEICHERN-UNTER-FENSTER) -->
+      <div class="bg-gray-800/40 border border-gray-700 p-5 rounded-xl">
+        <h3 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+          <span>📦</span> Lokales Backup: Export & Import
+        </h3>
+        <p class="text-xs text-gray-400 mb-4">Sichere deine Konfiguration auf deinen Computer oder lade eine gespeicherte Datei.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- EXPORTIEREN -->
+          <div class="bg-gray-900/80 p-3.5 rounded-lg border border-gray-800 flex flex-col justify-between">
+            <div>
+              <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider block mb-1">Exportieren</span>
+              <p class="text-[11px] text-gray-400 mb-3">Wähle, ob du nur die Spielkonfiguration oder auch den Spielstand sichern möchtest.</p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <button onclick="exportData(false)" class="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 px-3 py-2 rounded text-xs font-bold text-left flex items-center justify-between transition-colors">
+                <span>⚙️ Nur Einstellungen</span>
+                <span class="text-[10px] text-gray-400">.json</span>
+              </button>
+              <button onclick="exportData(true)" class="w-full bg-gray-800 hover:bg-gray-700 border border-yellow-600/50 text-yellow-400 px-3 py-2 rounded text-xs font-bold text-left flex items-center justify-between transition-colors">
+                <span>🏆 Einstellungen + Spielstand</span>
+                <span class="text-[10px] text-yellow-500/80">.json</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- IMPORTIEREN -->
+          <div class="bg-gray-900/80 p-3.5 rounded-lg border border-gray-800 flex flex-col justify-between">
+            <div>
+              <span class="text-xs font-bold text-green-400 uppercase tracking-wider block mb-1">Importieren</span>
+              <p class="text-[11px] text-gray-400 mb-3">Wähle eine zuvor exportierte Datei aus, um sie live einzuspielen.</p>
+            </div>
+            <div>
+              <input type="file" id="import-file-input" accept=".json" class="hidden" onchange="handleFileSelect(event)">
+              <button onclick="document.getElementById('import-file-input').click()" class="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold px-3 py-2.5 rounded text-xs uppercase tracking-wider shadow active:scale-95 transition-transform flex items-center justify-center gap-2">
+                <span>📂</span> JSON-Datei auswählen & laden
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+
   </main>
 
   <script>
     const VALID_MOD_PIN = "9876";
-    const TOTAL_ROUNDS = 7;
     let currentAuthPin = "";
+    let serverState = null;
 
-    // 7 Rundenzeilen aufbauen
-    const GAMES_LIST = [
-      { r: 1, name: "Jackbox: Fibbage" },
-      { r: 2, name: "Lach-Challenge" },
-      { r: 3, name: "Jackbox: Quiplash" },
-      { r: 4, name: "Stadt, Land, Fluss" },
-      { r: 5, name: "2. Lach-Challenge" },
-      { r: 6, name: "Jackbox: Survey Scramble" },
-      { r: 7, name: "Quiz (Finale)" }
-    ];
+    function switchTab(tab) {
+      const liveView = document.getElementById("view-live");
+      const settingsView = document.getElementById("view-settings");
+      const btnLive = document.getElementById("tab-btn-live");
+      const btnSettings = document.getElementById("tab-btn-settings");
 
-    const table = document.getElementById("rounds-table");
-    GAMES_LIST.forEach((g) => {
-      table.innerHTML += `
-        <div class="flex items-center justify-between bg-gray-800/80 px-3 py-2 rounded-lg border border-gray-700/60 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-yellow-500">R${g.r}</span>
-            <span class="text-xs text-gray-200 font-semibold">${g.name}</span>
-            <span class="text-[10px] text-gray-400">(${g.r} Pkt)</span>
-            <span id="badge-r-${g.r}" class="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-300 font-semibold">Offen</span>
-          </div>
-          <div class="flex gap-1">
-            <button onclick="setRoundWinner(${g.r}, 'streamer')" class="bg-blue-600/80 hover:bg-blue-600 px-2.5 py-1 rounded text-xs font-bold transition-colors">Oldmanstuff</button>
-            <button onclick="setRoundWinner(${g.r}, 'chat')" class="bg-purple-600/80 hover:bg-purple-600 px-2.5 py-1 rounded text-xs font-bold transition-colors">Kuhmunity</button>
-            <button onclick="setRoundWinner(${g.r}, 'clear')" class="bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs text-gray-400 transition-colors" title="Runde zurücksetzen">✕</button>
-          </div>
-        </div>
-      `;
-    });
-    
+      if (tab === "live") {
+        liveView.classList.remove("hidden");
+        settingsView.classList.add("hidden");
+        btnLive.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-yellow-500 text-black shadow transition-all";
+        btnSettings.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition-all";
+      } else {
+        liveView.classList.add("hidden");
+        settingsView.classList.remove("hidden");
+        btnSettings.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-yellow-500 text-black shadow transition-all";
+        btnLive.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition-all";
+        populateSettingsForm();
+      }
+    }
+
     function unlockHostPanel(pin) {
       currentAuthPin = pin;
       document.getElementById("auth-box").classList.add("hidden");
@@ -147,73 +271,418 @@
 
     function checkModPin() {
       const pin = document.getElementById("pin-input").value;
-      if (pin === VALID_MOD_PIN) {
-        document.getElementById("auth-error").classList.add("hidden");
-        unlockHostPanel(pin);
-      } else {
-        document.getElementById("auth-error").classList.remove("hidden");
-      }
+      if (pin === VALID_MOD_PIN) unlockHostPanel(pin);
+      else document.getElementById("auth-error").classList.remove("hidden");
     }
 
-    // Optionaler URL-Bypass für Tests: ?nopin
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has("nopin")) {
-      unlockHostPanel(VALID_MOD_PIN);
-    }
+    if (urlParams.has("nopin")) unlockHostPanel(VALID_MOD_PIN);
 
-    // WebSocket-Synchronisation
-function connectWebSocket() {
+    function connectWS() {
       const protocol = location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${location.host}/ws`;
-      const ws = new WebSocket(wsUrl);
+      const ws = new WebSocket(`${protocol}//${location.host}/ws`);
 
       ws.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
-          renderState(data); // bzw. updateUI(data) in host.html
+          serverState = JSON.parse(event.data);
+          updateUI(serverState);
         } catch (e) {
-          console.error("Datenverarbeitungsfehler:", e);
+          console.error("WS Parse Error:", e);
         }
       };
 
-      ws.onerror = (err) => {
-        console.warn("WebSocket Fehler aufgetreten:", err);
-      };
-
-      ws.onclose = () => {
-        // Bei Verbindungsunterbrechung alle 2 Sekunden automatisch neu versuchen
-        setTimeout(connectWebSocket, 2000);
-      };
+      ws.onclose = () => setTimeout(connectWS, 2000);
     }
 
     function updateUI(data) {
+      const p1 = data.player1_name || "Oldmanstuff";
+      const p2 = data.player2_name || "Kuhmunity";
+
+      document.getElementById("sub-header-match").innerText = `${p1} vs. ${p2}`;
+      document.getElementById("btn-label-player1").innerText = p1;
+      document.getElementById("btn-label-player2").innerText = p2;
+      document.getElementById("quick-win-p1").innerText = p1;
+      document.getElementById("quick-win-p2").innerText = p2;
+
       document.getElementById("display-score-streamer").innerText = data.score_streamer;
       document.getElementById("display-score-chat").innerText = data.score_chat;
       document.getElementById("current-round-text").innerText = data.round;
+      document.getElementById("max-rounds-text").innerText = data.total_rounds;
 
-      if (data.round_history) {
-        for (let r = 1; r <= TOTAL_ROUNDS; r++) {
-          const outcome = data.round_history[String(r)];
-          const badge = document.getElementById(`badge-r-${r}`);
-          if (outcome === "streamer") {
-            badge.innerText = "Oldmanstuff";
-            badge.className = "text-xs px-2 py-0.5 rounded bg-blue-600 text-white font-bold";
-          } else if (outcome === "chat") {
-            badge.innerText = "Kuhmunity";
-            badge.className = "text-xs px-2 py-0.5 rounded bg-purple-600 text-white font-bold";
-          } else {
-            badge.innerText = "Offen";
-            badge.className = "text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-semibold";
-          }
+      // Best-of Box beim aktiven Spiel
+      const currentRound = data.round;
+      const activeGame = (data.games || []).find(g => g.round === currentRound);
+      const hostSubBox = document.getElementById("host-subrounds-box");
+
+      if (activeGame && activeGame.has_subrounds) {
+        hostSubBox.classList.remove("hidden");
+        document.getElementById("sub-host-name-p1").innerText = p1;
+        document.getElementById("sub-host-name-p2").innerText = p2;
+        const bestOfCount = activeGame.subrounds_target || 3;
+
+        document.getElementById("host-sub-title").innerText = `Best of ${bestOfCount}`;
+        document.getElementById("host-sub-max").innerText = bestOfCount;
+
+        const subHistory = (data.sub_history && data.sub_history[String(currentRound)]) || [];
+        document.getElementById("host-sub-played").innerText = subHistory.length;
+
+        const pillsContainer = document.getElementById("host-sub-history-pills");
+        pillsContainer.innerHTML = "";
+        if (subHistory.length === 0) {
+          pillsContainer.innerHTML = `<span class="text-xs text-gray-500">Noch keine Minirunden gespielt</span>`;
+        } else {
+          subHistory.forEach((winner, idx) => {
+            if (winner === "p1") {
+              pillsContainer.innerHTML += `<span class="px-2 py-0.5 rounded bg-blue-600 text-white font-extrabold text-[10px]">R${idx+1}: ${p1}</span>`;
+            } else {
+              pillsContainer.innerHTML += `<span class="px-2 py-0.5 rounded bg-purple-600 text-white font-extrabold text-[10px]">R${idx+1}: ${p2}</span>`;
+            }
+          });
         }
+      } else {
+        hostSubBox.classList.add("hidden");
+      }
+
+      // Tabelle rendern
+      const table = document.getElementById("rounds-table");
+      table.innerHTML = "";
+
+      const totalRounds = data.total_rounds || 8;
+      const games = data.games || [];
+
+      for (let r = 1; r <= totalRounds; r++) {
+        const game = games.find(g => g.round === r) || { name: `Spiel ${r}`, points: r, has_subrounds: false };
+        const outcome = data.round_history ? data.round_history[String(r)] : null;
+        const isFinal = (r === totalRounds);
+
+        let badgeClass = "text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-semibold";
+        let badgeText = "Offen";
+
+        if (outcome === "streamer") {
+          badgeClass = "text-xs px-2 py-0.5 rounded bg-green-500 text-black font-extrabold border border-white";
+          badgeText = `Gewonnen: ${p1}`;
+        } else if (outcome === "chat") {
+          badgeClass = "text-xs px-2 py-0.5 rounded bg-green-500 text-black font-extrabold border border-white";
+          badgeText = `Gewonnen: ${p2}`;
+        }
+
+        const finaleTag = isFinal ? `<span class="text-[9px] bg-red-950 text-red-400 border border-red-800 font-black uppercase px-1.5 py-0.5 rounded">Finale</span>` : '';
+        const bestOfCount = game.subrounds_target || 3;
+        const subTag = game.has_subrounds ? `<span class="text-[9px] bg-indigo-950 text-indigo-300 border border-indigo-800 font-bold uppercase px-1.5 py-0.5 rounded">Best of ${bestOfCount}</span>` : '';
+
+        table.innerHTML += `
+          <div class="flex items-center justify-between bg-gray-800/80 px-3 py-2 rounded-lg border border-gray-700/60 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-yellow-500">R${r}</span>
+              <span class="text-xs text-gray-200 font-semibold">${game.name}</span>
+              ${finaleTag}
+              ${subTag}
+              <span class="text-[10px] text-gray-400">(${game.points} Pkt)</span>
+              <span class="${badgeClass} truncate max-w-[130px]">${badgeText}</span>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="setRoundWinner(${r}, 'streamer')" class="bg-blue-600/80 hover:bg-blue-600 px-2.5 py-1 rounded text-xs font-bold transition-colors truncate max-w-[90px]">${p1}</button>
+              <button onclick="setRoundWinner(${r}, 'chat')" class="bg-purple-600/80 hover:bg-purple-600 px-2.5 py-1 rounded text-xs font-bold transition-colors truncate max-w-[90px]">${p2}</button>
+              <button onclick="setRoundWinner(${r}, 'clear')" class="bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs text-gray-400 transition-colors" title="Runde zurücksetzen">✕</button>
+            </div>
+          </div>
+        `;
       }
     }
 
+    // EINSTELLUNGEN FORMULAR
+    function populateSettingsForm() {
+      if (!serverState) return;
+      document.getElementById("settings-player1").value = serverState.player1_name || "Oldmanstuff";
+      document.getElementById("settings-player2").value = serverState.player2_name || "Kuhmunity";
+      document.getElementById("settings-total-rounds").value = serverState.total_rounds || 8;
+      renderSettingsInputs();
+    }
+
+    function renderSettingsInputs() {
+      const numRounds = parseInt(document.getElementById("settings-total-rounds").value, 10);
+      const container = document.getElementById("settings-games-list");
+      
+      const currentValues = {};
+      for (let i = 1; i <= 10; i++) {
+        const nameInput = document.getElementById(`setting-name-${i}`);
+        const ptsInput = document.getElementById(`setting-pts-${i}`);
+        const subCheck = document.getElementById(`setting-sub-${i}`);
+        const subTarget = document.getElementById(`setting-subtarget-${i}`);
+        if (nameInput && ptsInput) {
+          currentValues[i] = {
+            name: nameInput.value,
+            points: ptsInput.value,
+            has_subrounds: subCheck ? subCheck.checked : false,
+            subrounds_target: subTarget ? subTarget.value : 3
+          };
+        }
+      }
+
+      container.innerHTML = "";
+
+      for (let r = 1; r <= numRounds; r++) {
+        let nameVal = `Spiel ${r}`;
+        let ptsVal = r;
+        let hasSub = false;
+        let subTarget = 3;
+
+        if (currentValues[r]) {
+          nameVal = currentValues[r].name;
+          ptsVal = currentValues[r].points;
+          hasSub = currentValues[r].has_subrounds;
+          subTarget = currentValues[r].subrounds_target;
+        } else if (serverState && serverState.games) {
+          const match = serverState.games.find(g => g.round === r);
+          if (match) {
+            nameVal = match.name;
+            ptsVal = match.points;
+            hasSub = Boolean(match.has_subrounds);
+            subTarget = match.subrounds_target || 3;
+          }
+        }
+
+        const isFinal = (r === numRounds);
+        const finaleMarker = isFinal 
+          ? `<span class="bg-red-600/30 text-red-400 border border-red-500/50 text-[10px] font-black px-1.5 py-0.5 rounded">FINALE</span>`
+          : '';
+
+        container.innerHTML += `
+          <div class="bg-gray-900/90 p-2.5 rounded-lg border border-gray-700/80">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="font-bold text-yellow-500 text-xs w-7">R${r}</span>
+              <div class="flex-1">
+                <input type="text" id="setting-name-${r}" value="${nameVal}" placeholder="Spiel-/Rundenname" class="w-full bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-yellow-400 font-semibold">
+              </div>
+              <div class="w-24 flex items-center gap-1">
+                <input type="number" id="setting-pts-${r}" value="${ptsVal}" min="0" max="99" class="w-14 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-amber-400 font-bold text-center focus:outline-none focus:border-yellow-400">
+                <span class="text-[10px] text-gray-400">Pkt</span>
+              </div>
+              <div class="w-14 text-center">
+                ${finaleMarker}
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pl-9 pt-1.5 border-t border-gray-800/80 text-[11px]">
+              <label class="flex items-center gap-1.5 text-gray-300 cursor-pointer">
+                <input type="checkbox" id="setting-sub-${r}" ${hasSub ? 'checked' : ''} onchange="toggleSubTarget(${r})" class="rounded border-gray-700 bg-gray-800 text-yellow-500 focus:ring-0">
+                <span>Best of Modus aktivieren</span>
+              </label>
+              
+              <div id="subtarget-wrap-${r}" class="${hasSub ? 'flex' : 'hidden'} items-center gap-1.5 text-gray-400">
+                <span>Modus: Best of</span>
+                <input type="number" id="setting-subtarget-${r}" value="${subTarget}" min="1" max="15" class="w-12 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-xs text-yellow-400 font-bold text-center focus:outline-none focus:border-yellow-400">
+                <span class="text-[10px] text-gray-500">Runden</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function toggleSubTarget(round) {
+      const check = document.getElementById(`setting-sub-${round}`);
+      const wrap = document.getElementById(`subtarget-wrap-${round}`);
+      if (check.checked) wrap.classList.remove("hidden");
+      else wrap.classList.add("hidden");
+    }
+
+    async function saveSettings() {
+      const p1 = document.getElementById("settings-player1").value.trim() || "Oldmanstuff";
+      const p2 = document.getElementById("settings-player2").value.trim() || "Kuhmunity";
+      const numRounds = parseInt(document.getElementById("settings-total-rounds").value, 10);
+      const games = [];
+
+      for (let r = 1; r <= numRounds; r++) {
+        const name = document.getElementById(`setting-name-${r}`).value.trim() || `Spiel ${r}`;
+        const points = parseInt(document.getElementById(`setting-pts-${r}`).value, 10) || 0;
+        const hasSub = document.getElementById(`setting-sub-${r}`).checked;
+        const subTarget = parseInt(document.getElementById(`setting-subtarget-${r}`).value, 10) || 3;
+
+        games.push({
+          round: r,
+          name: name,
+          points: points,
+          has_subrounds: hasSub,
+          subrounds_target: subTarget
+        });
+      }
+
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pin: currentAuthPin,
+          player1_name: p1,
+          player2_name: p2,
+          total_rounds: numRounds,
+          games: games
+        })
+      });
+
+      if (res.ok) {
+        alert("✓ Einstellungen erfolgreich gespeichert!");
+        switchTab("live");
+      } else {
+        alert("Fehler beim Speichern der Einstellungen!");
+      }
+    }
+
+    // ================= EXPORT & IMPORT MIT FILE PICKER =================
+    async function exportData(includeScores = false) {
+      if (!serverState) {
+        alert("Keine Spieldaten zum Exportieren vorhanden!");
+        return;
+      }
+
+      const numRounds = parseInt(document.getElementById("settings-total-rounds").value, 10) || serverState.total_rounds || 8;
+      const p1 = document.getElementById("settings-player1") ? document.getElementById("settings-player1").value.trim() : (serverState.player1_name || "Oldmanstuff");
+      const p2 = document.getElementById("settings-player2") ? document.getElementById("settings-player2").value.trim() : (serverState.player2_name || "Kuhmunity");
+
+      const games = [];
+      for (let r = 1; r <= numRounds; r++) {
+        const nameEl = document.getElementById(`setting-name-${r}`);
+        const ptsEl = document.getElementById(`setting-pts-${r}`);
+        const subEl = document.getElementById(`setting-sub-${r}`);
+        const subTargetEl = document.getElementById(`setting-subtarget-${r}`);
+
+        if (nameEl && ptsEl) {
+          games.push({
+            round: r,
+            name: nameEl.value.trim() || `Spiel ${r}`,
+            points: parseInt(ptsEl.value, 10) || 0,
+            has_subrounds: subEl ? subEl.checked : false,
+            subrounds_target: subTargetEl ? parseInt(subTargetEl.value, 10) || 3 : 3
+          });
+        } else {
+          const fallback = (serverState.games || []).find(g => g.round === r) || { name: `Spiel ${r}`, points: r, has_subrounds: false, subrounds_target: 3 };
+          games.push(fallback);
+        }
+      }
+
+      const exportObj = {
+        app: "twelfthlion-scoreboard",
+        version: "2.0",
+        export_type: includeScores ? "full_backup" : "settings_only",
+        timestamp: new Date().toISOString(),
+        player1_name: p1,
+        player2_name: p2,
+        total_rounds: numRounds,
+        games: games
+      };
+
+      if (includeScores) {
+        exportObj.score_streamer = serverState.score_streamer || 0;
+        exportObj.score_chat = serverState.score_chat || 0;
+        exportObj.round = serverState.round || 1;
+        exportObj.round_history = serverState.round_history || {};
+        exportObj.sub_history = serverState.sub_history || {};
+      }
+
+      const jsonString = JSON.stringify(exportObj, null, 2);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const suggestedFileName = includeScores 
+        ? `scoreboard_backup_vollstaendig_${dateStr}.json` 
+        : `scoreboard_einstellungen_${dateStr}.json`;
+
+      // 1. Native File System Access API: Öffnet "Speichern unter..."-Fenster
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: suggestedFileName,
+            types: [{
+              description: 'JSON Sicherungsdatei',
+              accept: { 'application/json': ['.json'] }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(jsonString);
+          await writable.close();
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          console.warn("Picker fehlgeschlagen, nutze Fallback:", err);
+        }
+      }
+
+      // 2. Fallback für Browser ohne File System Picker
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = suggestedFileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+
+          if (!imported.games || !Array.isArray(imported.games)) {
+            throw new Error("Ungültiges Dateiformat: Keine Spieleliste gefunden.");
+          }
+
+          const isFull = (imported.export_type === "full_backup" || imported.score_streamer !== undefined);
+          const confirmMsg = isFull 
+            ? "Möchtest du diese Sicherung (Einstellungen UND Spielstand) importieren und anwenden?" 
+            : "Möchtest du diese Spieleinstellungen importieren und anwenden? (Der aktuelle Spielstand bleibt erhalten)";
+
+          if (!confirm(confirmMsg)) {
+            event.target.value = "";
+            return;
+          }
+
+          const payload = {
+            pin: currentAuthPin,
+            import_type: isFull ? "full" : "settings_only",
+            player1_name: imported.player1_name || "Oldmanstuff",
+            player2_name: imported.player2_name || "Kuhmunity",
+            total_rounds: imported.total_rounds || imported.games.length,
+            games: imported.games
+          };
+
+          if (isFull) {
+            payload.score_streamer = imported.score_streamer || 0;
+            payload.score_chat = imported.score_chat || 0;
+            payload.round = imported.round || 1;
+            payload.round_history = imported.round_history || {};
+            payload.sub_history = imported.sub_history || {};
+          }
+
+          const res = await fetch("/api/import", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            alert("✓ Import erfolgreich übernommen & live übertragen!");
+            populateSettingsForm();
+            switchTab("live");
+          } else {
+            alert("Fehler beim Übertragen des Imports an den Server!");
+          }
+        } catch (err) {
+          alert("Fehler beim Lesen der Datei: " + err.message);
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ================= ACTIONS =================
     async function sendAction(action, roundNum = null) {
       const payload = { pin: currentAuthPin, action: action };
-      if (roundNum !== null) {
-        payload.round_num = roundNum;
-      }
+      if (roundNum !== null) payload.round_num = roundNum;
 
       const res = await fetch("/api/update", {
         method: "POST",
@@ -221,9 +690,38 @@ function connectWebSocket() {
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) {
-        alert("Aktion fehlgeschlagen: Bitte Sitzung oder PIN prüfen!");
-      }
+      if (!res.ok) alert("Aktion fehlgeschlagen!");
+    }
+
+    async function sendSubWin(winnerPlayer) {
+      const payload = {
+        pin: currentAuthPin,
+        action: "add_sub_win",
+        winner: winnerPlayer
+      };
+
+      const res = await fetch("/api/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) alert("Best-of Aktion fehlgeschlagen!");
+    }
+
+    async function sendSubAction(type) {
+      const payload = {
+        pin: currentAuthPin,
+        action: type
+      };
+
+      const res = await fetch("/api/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) alert("Aktion fehlgeschlagen!");
     }
 
     function setRoundWinner(round, winner) {
@@ -233,7 +731,7 @@ function connectWebSocket() {
     }
 
     function confirmReset() {
-      if (confirm("Möchtest du wirklich alle Scores und Runden auf 0 zurücksetzen?")) {
+      if (confirm("Möchtest du wirklich alle Scores, Runden und Best-of-Stände auf 0 zurücksetzen?")) {
         sendAction("reset");
       }
     }

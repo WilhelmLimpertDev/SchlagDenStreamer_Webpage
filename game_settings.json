@@ -1,0 +1,56 @@
+{
+  "player1_name": "Oldmanstuff",
+  "player2_name": "Kuhmunity",
+  "total_rounds": 7,
+  "games": [
+    {
+      "round": 1,
+      "name": "Jackbox: Fibbage",
+      "points": 1,
+      "has_subrounds": false,
+      "subrounds_target": 3
+    },
+    {
+      "round": 2,
+      "name": "Lach-Challange",
+      "points": 2,
+      "has_subrounds": false,
+      "subrounds_target": 3
+    },
+    {
+      "round": 3,
+      "name": "Jackbox: Quiplash",
+      "points": 3,
+      "has_subrounds": false,
+      "subrounds_target": 5
+    },
+    {
+      "round": 4,
+      "name": "Stadt, Land, Fluss",
+      "points": 4,
+      "has_subrounds": false,
+      "subrounds_target": 3
+    },
+    {
+      "round": 5,
+      "name": "2. Lach-Challenge",
+      "points": 5,
+      "has_subrounds": false,
+      "subrounds_target": 3
+    },
+    {
+      "round": 6,
+      "name": "Jackbox: Survey Scramble",
+      "points": 6,
+      "has_subrounds": true,
+      "subrounds_target": 3
+    },
+    {
+      "round": 7,
+      "name": "Quiz-Willy",
+      "points": 7,
+      "has_subrounds": true,
+      "subrounds_target": 7
+    }
+  ]
+}

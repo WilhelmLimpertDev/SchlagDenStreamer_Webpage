@@ -1,0 +1,93 @@
+{
+  "app": "twelfthlion-scoreboard",
+  "version": "2.0",
+  "export_type": "full_backup",
+  "timestamp": "2026-10-03T12:19:06.951Z",
+  "player1_name": "Oldmanstuff",
+  "player2_name": "Kuhmunity",
+  "total_rounds": 7,
+  "games": [
+    {
+      "round": 1,
+      "name": "Jackbox: Fibbage",
+      "points": 1,
+      "has_subrounds": false,
+      "subrounds_target": 3
+    },
+    {
+      "round": 2,
+      "name": "Lach-Challange",
+      "points": 2,
+      "has_subrounds": false,
+      "subrounds_target": 3
+    },
+    {
+      "round": 3,
+      "name": "Jackbox: Quiplash",
+      "points": 3,
+      "has_subrounds": false,
+      "subrounds_target": 5
+    },
+    {
+      "round": 4,
+      "name": "Stadt, Land, Fluss",
+      "points": 4,
+      "has_subrounds": false,
+      "subrounds_target": 3
+    },
+    {
+      "round": 5,
+      "name": "2. Lach-Challenge",
+      "points": 5,
+      "has_subrounds": false,
+      "subrounds_target": 3
+    },
+    {
+      "round": 6,
+      "name": "Jackbox: Survey Scramble",
+      "points": 6,
+      "has_subrounds": true,
+      "subrounds_target": 3
+    },
+    {
+      "round": 7,
+      "name": "Quiz-Willy",
+      "points": 7,
+      "has_subrounds": true,
+      "subrounds_target": 7
+    }
+  ],
+  "score_streamer": 6,
+  "score_chat": 22,
+  "round": 7,
+  "round_history": {
+    "1": "chat",
+    "2": "streamer",
+    "3": "chat",
+    "4": "streamer",
+    "5": "chat",
+    "6": "chat",
+    "7": "chat"
+  },
+  "sub_history": {
+    "1": [],
+    "2": [],
+    "3": [],
+    "4": [],
+    "5": [],
+    "6": [
+      "p2",
+      "p2",
+      "p2"
+    ],
+    "7": [
+      "p1",
+      "p1",
+      "p2",
+      "p2",
+      "p2",
+      "p2",
+      "p2"
+    ]
+  }
+}
