@@ -213,16 +213,26 @@
       unlockUI();
     }
 
-    function connectWebSocket() {
+function connectWebSocket() {
       const protocol = location.protocol === "https:" ? "wss:" : "ws:";
-      const ws = new WebSocket(`${protocol}//${location.host}/ws`);
+      const wsUrl = `${protocol}//${location.host}/ws`;
+      const ws = new WebSocket(wsUrl);
 
       ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        renderState(data);
+        try {
+          const data = JSON.parse(event.data);
+          renderState(data); // bzw. updateUI(data) in host.html
+        } catch (e) {
+          console.error("Datenverarbeitungsfehler:", e);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.warn("WebSocket Fehler aufgetreten:", err);
       };
 
       ws.onclose = () => {
+        // Bei Verbindungsunterbrechung alle 2 Sekunden automatisch neu versuchen
         setTimeout(connectWebSocket, 2000);
       };
     }

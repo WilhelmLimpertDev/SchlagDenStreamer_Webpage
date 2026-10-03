@@ -3,19 +3,24 @@ const http = require('http');
 const path = require('path');
 const WebSocket = require('ws');
 
+// Verhindert, dass der Server bei unerwarteten Fehlern abstürzt
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception abgefangen:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection abgefangen:', reason);
+});
+
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server, path: '/ws' });
 
-// Port von Hostinger oder Standard 8000
+// Port von Hostinger Umgebungsvariablen übernehmen
 const PORT = process.env.PORT || 8000;
 
-// Sicherheits-PINs
 const STREAMER_PIN = "1234";
 const MOD_PIN = "9876";
-const TOTAL_ROUNDS = 7;
+const TOTAL_ROUNDS = 8;
 
-// Zentraler Spielstand
 let gameState = {
   score_streamer: 0,
   score_chat: 0,
@@ -23,47 +28,81 @@ let gameState = {
   round_history: {}
 };
 
-// Rundenhistorie initialisieren
 for (let i = 1; i <= TOTAL_ROUNDS; i++) {
   gameState.round_history[String(i)] = null;
 }
 
-// JSON-Body Parser für Express
-app.use(express.json());
+// CORS & No-Cache Header für zuverlässigen Live-Zugriff
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-// Statische Dateien aus dem Ordner 'static' ausliefern
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'static')));
 
-// WebSocket: Live-Verbindungen verwalten
+// WebSocket Server mit Fehlerbehandlung
+const wss = new WebSocket.Server({ server, path: '/ws' });
+
 function broadcastState() {
   const payload = JSON.stringify(gameState);
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(payload);
+      try {
+        client.send(payload);
+      } catch (e) {
+        console.error('Fehler beim Senden an Client:', e);
+      }
     }
   });
 }
 
-wss.on('connection', (ws) => {
-  // Sofort den aktuellen Stand an den frisch verbundenen Client schicken
-  ws.send(JSON.stringify(gameState));
+wss.on('connection', (ws, req) => {
+  ws.isAlive = true;
+  ws.on('pong', () => { ws.isAlive = true; });
 
-  ws.on('error', (err) => console.error('WebSocket Fehler:', err));
+  try {
+    ws.send(JSON.stringify(gameState));
+  } catch (e) {
+    console.error('Initialer Send-Fehler:', e);
+  }
+
+  ws.on('error', (err) => {
+    console.error('Client WebSocket Fehler:', err);
+  });
 });
 
-// REST API für Mod-Aktionen
+// Heartbeat Ping alle 25 Sekunden (verhindert Timeout durch Hostinger/Nginx-Proxy)
+const pingInterval = setInterval(() => {
+  wss.clients.forEach((ws) => {
+    if (ws.isAlive === false) return ws.terminate();
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 25000);
+
+wss.on('close', () => {
+  clearInterval(pingInterval);
+});
+
+// REST API
 app.post('/api/update', (req, res) => {
   const { pin, action, round_num } = req.body;
 
   if (pin !== MOD_PIN) {
-    return res.status(403).json({ detail: "Ungueltige Mod-PIN" });
+    return res.status(403).json({ detail: "Ungültige Mod-PIN" });
   }
 
   const targetRoundInt = round_num ? parseInt(round_num, 10) : gameState.round;
   const targetRoundStr = String(targetRoundInt);
-  const roundPoints = targetRoundInt; // Runde 1 = 1 Pkt, Runde 2 = 2 Pkte, usw.
+  const roundPoints = targetRoundInt === 8 ? 0 : targetRoundInt;
 
-  // Manuelle Punkte-Korrekturen
   if (action === "inc_streamer") {
     gameState.score_streamer += 1;
   } else if (action === "dec_streamer") {
@@ -72,27 +111,19 @@ app.post('/api/update', (req, res) => {
     gameState.score_chat += 1;
   } else if (action === "dec_chat") {
     gameState.score_chat = Math.max(0, gameState.score_chat - 1);
-  }
-
-  // Runden-Navigation
-  else if (action === "next_round") {
+  } else if (action === "next_round") {
     if (gameState.round < TOTAL_ROUNDS) gameState.round += 1;
   } else if (action === "prev_round") {
     if (gameState.round > 1) gameState.round -= 1;
-  }
-
-  // Runden-Sieger & Punkte-Verrechnung
-  else if (action === "win_streamer" || action === "win_chat" || action === "win_clear") {
+  } else if (action === "win_streamer" || action === "win_chat" || action === "win_clear") {
     const previousWinner = gameState.round_history[targetRoundStr];
 
-    // Vorherige Punkte abziehen
     if (previousWinner === "streamer") {
       gameState.score_streamer = Math.max(0, gameState.score_streamer - roundPoints);
     } else if (previousWinner === "chat") {
       gameState.score_chat = Math.max(0, gameState.score_chat - roundPoints);
     }
 
-    // Neuen Gewinner und Punkte eintragen
     if (action === "win_streamer") {
       gameState.round_history[targetRoundStr] = "streamer";
       gameState.score_streamer += roundPoints;
@@ -102,10 +133,7 @@ app.post('/api/update', (req, res) => {
     } else if (action === "win_clear") {
       gameState.round_history[targetRoundStr] = null;
     }
-  }
-
-  // Spiel zurücksetzen
-  else if (action === "reset") {
+  } else if (action === "reset") {
     gameState.score_streamer = 0;
     gameState.score_chat = 0;
     gameState.round = 1;
@@ -114,13 +142,13 @@ app.post('/api/update', (req, res) => {
     }
   }
 
-  // Live-Broadcast an alle Overlays & Host-Panels
   broadcastState();
-
   return res.json({ status: "success", state: gameState });
 });
 
-// Server starten
+// Fallback für alle anderen Routen auf index.html oder 404 vermeiden
+app.get('/health', (req, res) => res.send('OK'));
+
 server.listen(PORT, () => {
-  console.log(`Server laeuft auf Port ${PORT}`);
+  console.log(`Server läuft stabil auf Port ${PORT}`);
 });
